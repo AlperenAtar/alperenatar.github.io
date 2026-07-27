@@ -1,24 +1,22 @@
-# build output
-dist/
+# .gitignore  (dosya adını ".gitignore" yap)
 
-# generated types
+# derleme çıktısı
+dist/
 .astro/
 
-# dependencies
+# bağımlılıklar
 node_modules/
 
-# logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# environment variables
+# ortam / gizli
 .env
 .env.production
 
-# macOS-specific files
+# işletim sistemi & editör
 .DS_Store
-
-# jetbrains setting folder
+Thumbs.db
+.vscode/
 .idea/
+
+# günlükler
+npm-debug.log*
+yarn-error.log*
