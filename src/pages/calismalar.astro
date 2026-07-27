@@ -1,0 +1,522 @@
+---
+// src/pages/calismalar.astro
+// ------------------------------------------------------------------
+// ÇALIŞMALARIM — tüm çalışmalar
+// /calismalar             -> albümler (kart) + tekil çalışmalar (toplu)
+// /calismalar?album=Ad    -> o albümün içindeki tüm kare/videolar
+// Fotoğraf + video lightbox; ?album paylaşılabilir, geri tuşu uyumlu.
+// ------------------------------------------------------------------
+import { GAS_BASE } from "../config.js";
+---
+
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Çalışmalarım — Portfolyo</title>
+  <meta name="description" content="Albümler ve seçilmiş kareler; sokak, portre, konser ve doğa fotoğrafçılığı." />
+
+  <script is:inline>
+    (function () {
+      try {
+        var t = localStorage.getItem('tema');
+        if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body data-api={GAS_BASE}>
+
+  <div class="grain" aria-hidden="true"></div>
+  <div class="crop-marks" aria-hidden="true">
+    <span class="cm cm-tl"></span><span class="cm cm-tr"></span>
+    <span class="cm cm-bl"></span><span class="cm cm-br"></span>
+  </div>
+
+  <div class="floating" id="floating" aria-label="Hızlı iletişim">
+    <a href="#" id="fab-wa" class="fab" target="_blank" rel="noopener" title="WhatsApp" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.7-.84-1.96-.94-.26-.1-.45-.15-.64.15-.19.29-.74.94-.9 1.13-.17.19-.33.22-.62.07-.29-.15-1.22-.45-2.32-1.43-.86-.77-1.44-1.71-1.6-2-.17-.29-.02-.45.13-.6.13-.13.29-.33.44-.5.15-.17.19-.29.29-.48.1-.19.05-.36-.02-.5-.07-.15-.64-1.55-.88-2.12-.23-.56-.47-.48-.64-.49l-.55-.01c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.14.19 2.01 3.07 4.88 4.3.68.29 1.21.47 1.63.6.68.22 1.31.19 1.8.12.55-.08 1.7-.7 1.94-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.34zM12.05 21.7h-.01a9.6 9.6 0 0 1-4.9-1.34l-.35-.21-3.64.96.97-3.55-.23-.36a9.6 9.6 0 0 1-1.47-5.12c0-5.31 4.32-9.63 9.64-9.63a9.58 9.58 0 0 1 9.63 9.64c0 5.31-4.32 9.62-9.64 9.62zM20.5 3.49A11.5 11.5 0 0 0 12.05.09C5.7.09.54 5.25.53 11.59a11.48 11.48 0 0 0 1.54 5.75L.44 23.9l6.71-1.76a11.5 11.5 0 0 0 5.49 1.4h.01c6.34 0 11.5-5.16 11.5-11.5a11.43 11.43 0 0 0-3.65-8.55z"/></svg>
+    </a>
+    <a href="#" id="fab-ig" class="fab" target="_blank" rel="noopener" title="Instagram" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"/></svg>
+    </a>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav" id="nav">
+    <a href="/" class="nav-mark" aria-label="Ana sayfa">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <circle cx="15" cy="15" r="13" stroke="currentColor" stroke-width="1.2"/>
+        <circle cx="15" cy="15" r="4.5" stroke="currentColor" stroke-width="1.2"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a href="/calismalar" class="active">Çalışmalar</a>
+      <a href="/#hakkimda">Hakkımda</a>
+      <a href="/gunce">Günce</a>
+      <a href="/iletisim">İletişim</a>
+    </div>
+    <div class="nav-right">
+      <button id="tema-btn" class="tema-btn" aria-label="Temayı değiştir" title="Tema">
+        <svg class="ic-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg>
+        <svg class="ic-moon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a.6.6 0 0 0-.8-.77A9.5 9.5 0 1 0 21.3 15.3a.6.6 0 0 0-.8-.8z"/></svg>
+      </button>
+      <a href="/iletisim" class="nav-cta">Rezervasyon</a>
+    </div>
+  </nav>
+
+  <main class="cal-main">
+
+    <!-- LİSTE GÖRÜNÜMÜ -->
+    <section id="liste-view">
+      <header class="cal-hero">
+        <p class="section-label">ÇALIŞMALAR</p>
+        <h1>Çalışmalarım</h1>
+        <p class="cal-intro">Albümler ve seçilmiş tekil kareler. Bir albüme dokun, içindeki tüm kareleri gör.</p>
+      </header>
+
+      <div id="filtre" class="filtre"></div>
+
+      <section id="album-bolum" class="blok hidden">
+        <div class="blok-head"><h2>Albümler</h2><span class="say" id="album-say"></span></div>
+        <div id="album-grid" class="grid"></div>
+      </section>
+
+      <section id="tekil-bolum" class="blok hidden">
+        <div class="blok-head"><h2>Tekil Çalışmalar</h2><span class="say" id="tekil-say"></span></div>
+        <div id="tekil-grid" class="grid"></div>
+      </section>
+
+      <div id="liste-loader" class="loader"><div class="spinner"></div></div>
+      <p id="liste-empty" class="empty-state hidden">Henüz yayınlanmış çalışma yok.</p>
+    </section>
+
+    <!-- ALBÜM DETAY GÖRÜNÜMÜ -->
+    <section id="album-view" hidden>
+      <a href="/calismalar" class="geri" id="geri-btn">← Tüm çalışmalar</a>
+      <header class="cal-hero">
+        <p class="section-label">ALBÜM</p>
+        <h1 id="album-baslik"></h1>
+        <p class="cal-intro" id="album-alt"></p>
+      </header>
+      <div id="album-detay-grid" class="grid"></div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>© <span id="yil"></span> — Tüm hakları saklıdır.</p>
+  </footer>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lb-close" id="lb-close" aria-label="Kapat">&times;</button>
+    <button class="lb-nav lb-prev" id="lb-prev" aria-label="Önceki">&#8249;</button>
+    <figure class="lb-stage">
+      <div id="lb-media" class="lb-media"></div>
+      <figcaption id="lb-cap"></figcaption>
+    </figure>
+    <button class="lb-nav lb-next" id="lb-next" aria-label="Sonraki">&#8250;</button>
+    <span class="lb-counter" id="lb-counter"></span>
+  </div>
+
+  <style is:global>
+    /* ===== TEMA JETONLARI ===== */
+    [data-theme="dark"] {
+      --bg:#0d0d0f; --bg-elev:#141417; --fg:#f2f0ec; --fg-muted:#8f8d94; --fg-faint:#5a5960;
+      --line:rgba(242,240,236,0.11); --line-strong:rgba(242,240,236,0.22);
+      --accent:#c8a45c; --card:#17171b; --shadow:0 20px 50px -24px rgba(0,0,0,0.8);
+      --grain-blend:overlay; --grain-op:0.05;
+    }
+    [data-theme="light"] {
+      --bg:#f4f2ec; --bg-elev:#eae6dc; --fg:#17161a; --fg-muted:#6a6862; --fg-faint:#a29e94;
+      --line:rgba(23,22,26,0.12); --line-strong:rgba(23,22,26,0.26);
+      --accent:#8a6420; --card:#fbfaf6; --shadow:0 20px 50px -28px rgba(40,36,28,0.28);
+      --grain-blend:multiply; --grain-op:0.04;
+    }
+    :root { --font-display:"Fraunces",serif; --font-body:"Inter",sans-serif; --font-mono:"IBM Plex Mono",monospace; --ease:cubic-bezier(.16,1,.3,1); }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:var(--bg); color:var(--fg); font-family:var(--font-body); -webkit-font-smoothing:antialiased; overflow-x:hidden; transition:background .5s ease, color .5s ease; }
+    a { color:inherit; text-decoration:none; }
+    h1,h2,h3 { font-family:var(--font-display); font-weight:500; margin:0; }
+    p { margin:0; }
+    img { display:block; max-width:100%; }
+    ::selection { background:var(--accent); color:var(--bg); }
+
+    .grain { position:fixed; inset:0; pointer-events:none; z-index:200; opacity:var(--grain-op); mix-blend-mode:var(--grain-blend); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    .crop-marks { position:fixed; inset:18px; pointer-events:none; z-index:90; }
+    .cm { position:absolute; width:16px; height:16px; }
+    .cm::before,.cm::after { content:""; position:absolute; background:var(--line-strong); }
+    .cm::before { width:100%; height:1px; top:0; } .cm::after { width:1px; height:100%; left:0; }
+    .cm-tl { top:0; left:0; } .cm-tr { top:0; right:0; transform:scaleX(-1); }
+    .cm-bl { bottom:0; left:0; transform:scaleY(-1); } .cm-br { bottom:0; right:0; transform:scale(-1); }
+    @media (max-width:720px) { .crop-marks { display:none; } }
+
+    .floating { position:fixed; right:clamp(16px,3vw,30px); bottom:clamp(16px,3vw,30px); z-index:120; display:flex; flex-direction:column; gap:12px; }
+    .fab { width:46px; height:46px; border-radius:50%; display:grid; place-items:center; background:var(--card); color:var(--fg); border:1px solid var(--line-strong); box-shadow:var(--shadow); transition:transform .25s var(--ease), color .25s, border-color .25s; }
+    .fab:hover { transform:translateY(-3px); color:var(--accent); border-color:var(--accent); }
+    @media (max-width: 640px) {
+      .fab { width: 42px; height: 42px; }
+      .floating { right: 12px; bottom: 12px; gap: 10px; }
+    }
+
+
+    .nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:20px clamp(24px,5vw,64px); backdrop-filter:blur(8px); transition:background .3s ease; }
+    .nav-mark { color:var(--fg); display:flex; }
+    .nav-links { display:flex; gap:30px; }
+    .nav-links a { font-family:var(--font-mono); font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:var(--fg-muted); transition:color 0.25s; }
+    .nav-links a:hover, .nav-links a.active { color:var(--fg); }
+    .nav-links a.active { position:relative; }
+    .nav-links a.active::after { content:""; position:absolute; left:0; right:0; bottom:-6px; height:1px; background:var(--accent); }
+    .nav-right { display:flex; align-items:center; gap:14px; }
+    .tema-btn { width:36px; height:36px; border-radius:50%; cursor:pointer; background:transparent; border:1px solid var(--line); color:var(--fg-muted); display:grid; place-items:center; transition:color .25s, border-color .25s, transform .4s var(--ease); }
+    .tema-btn:hover { color:var(--accent); border-color:var(--accent); transform:rotate(18deg); }
+    [data-theme="dark"] .ic-sun { display:block; } [data-theme="dark"] .ic-moon { display:none; }
+    [data-theme="light"] .ic-sun { display:none; } [data-theme="light"] .ic-moon { display:block; }
+    .nav-cta { font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; border:1px solid var(--line-strong); padding:8px 16px; border-radius:999px; color:var(--fg); transition:border-color 0.25s, color .25s; }
+    .nav-cta:hover { border-color:var(--accent); color:var(--accent); }
+    @media (max-width:760px) { .nav-links { display:none; } }
+
+    .cal-main { max-width: 1200px; margin: 0 auto; padding: 140px clamp(24px,5vw,64px) 40px; min-height: 70vh; }
+    @media (max-width: 760px) { .cal-main { padding-top: 160px; } }
+    .cal-hero { max-width:640px; margin-bottom:44px; }
+    .section-label { font-family:var(--font-mono); font-size:11px; letter-spacing:0.14em; color:var(--accent); text-transform:uppercase; margin-bottom:14px; }
+    .cal-hero h1 { font-size:clamp(2.4rem,6vw,4rem); font-weight:300; letter-spacing:-0.02em; }
+    .cal-intro { color:var(--fg-muted); font-size:1.05rem; line-height:1.6; margin-top:18px; }
+
+    .filtre { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:38px; }
+    .filtre button { font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--fg-muted); background:transparent; border:1px solid var(--line); border-radius:999px; padding:7px 15px; cursor:pointer; transition:color .2s, border-color .2s, background .2s; }
+    .filtre button:hover { color:var(--fg); }
+    .filtre button.active { color:var(--bg); background:var(--accent); border-color:var(--accent); }
+
+    .blok { margin-bottom:64px; }
+    .blok-head { display:flex; align-items:baseline; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:16px; margin-bottom:30px; }
+    .blok-head h2 { font-size:clamp(1.4rem,3vw,1.9rem); }
+    .say { font-family:var(--font-mono); font-size:12px; color:var(--fg-muted); }
+
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:30px 24px; }
+    .card { display:flex; flex-direction:column; cursor:pointer; opacity:0; transform:translateY(24px); transition:opacity .6s var(--ease), transform .6s var(--ease); }
+    .card.in { opacity:1; transform:none; }
+    .card-frame { position:relative; overflow:hidden; background:var(--bg-elev); aspect-ratio:4/5; border:1px solid var(--line); }
+    .card-frame img { width:100%; height:100%; object-fit:cover; filter:contrast(1.02); transition:transform .9s var(--ease); }
+    .card:hover .card-frame img { transform:scale(1.045); }
+    .frame-no,.card-cat { position:absolute; top:14px; font-family:var(--font-mono); font-size:10px; letter-spacing:0.08em; color:#f2f0ec; background:rgba(0,0,0,0.6); padding:4px 8px; text-transform:uppercase; }
+    .frame-no { left:14px; } .card-cat { right:14px; }
+    .album-badge { position:absolute; bottom:14px; right:14px; font-family:var(--font-mono); font-size:10px; letter-spacing:0.06em; color:#f2f0ec; background:rgba(0,0,0,0.62); padding:5px 9px; }
+    .card-meta { padding-top:15px; }
+    .card-meta h3 { font-size:1.15rem; font-weight:500; margin-bottom:6px; }
+    .card-meta p { color:var(--fg-muted); font-size:0.9rem; line-height:1.5; }
+
+    .play-overlay { position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; }
+    .play-badge { width:54px; height:54px; border-radius:50%; display:grid; place-items:center; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.55); transition:transform .3s var(--ease), background .3s, border-color .3s; }
+    .play-badge svg { margin-left:3px; }
+    .card:hover .play-badge { transform:scale(1.12); background:var(--accent); border-color:var(--accent); }
+
+    .loader { display:flex; justify-content:center; padding:60px 0; }
+    .spinner { width:26px; height:26px; border-radius:50%; border:2px solid var(--line); border-top-color:var(--accent); animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .empty-state { text-align:center; padding:60px 0; color:var(--fg-muted); }
+    .hidden { display:none !important; }
+
+    .geri { display:inline-block; font-family:var(--font-mono); font-size:12px; letter-spacing:0.05em; color:var(--fg-muted); margin-bottom:24px; transition:color .2s; }
+    .geri:hover { color:var(--accent); }
+
+    .footer { text-align:center; padding:40px 0; border-top:1px solid var(--line); }
+    .footer p { font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); }
+
+    /* LIGHTBOX */
+    .lightbox { position:fixed; inset:0; z-index:300; display:grid; place-items:center; background:rgba(5,5,6,0.94); backdrop-filter:blur(4px); opacity:0; transition:opacity .3s ease; }
+    .lightbox.show { opacity:1; }
+    .lb-stage { margin:0; max-width:min(92vw,1100px); max-height:88vh; display:flex; flex-direction:column; align-items:center; }
+    .lb-media { display:grid; place-items:center; }
+    .lb-media img { max-width:100%; max-height:80vh; object-fit:contain; border:1px solid rgba(255,255,255,0.12); }
+    .lb-stage figcaption { color:#cfcdc8; font-family:var(--font-mono); font-size:12px; margin-top:14px; text-align:center; letter-spacing:0.04em; }
+    .lb-close { position:fixed; top:22px; right:26px; background:none; border:none; color:#fff; font-size:34px; line-height:1; cursor:pointer; opacity:.8; }
+    .lb-close:hover { opacity:1; }
+    .lb-nav { position:fixed; top:50%; transform:translateY(-50%); background:none; border:none; color:#fff; font-size:48px; cursor:pointer; opacity:.55; padding:10px 18px; transition:opacity .2s; }
+    .lb-nav:hover { opacity:1; }
+    .lb-prev { left:12px; } .lb-next { right:12px; }
+    .lb-counter { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); color:#cfcdc8; font-family:var(--font-mono); font-size:12px; letter-spacing:0.1em; }
+    @media (max-width: 640px) {
+      .lb-nav { font-size: 34px; padding: 8px 10px; }
+      .lb-prev { left: 0; } .lb-next { right: 0; }
+      .lb-stage { max-width: 96vw; }
+      .lb-stage img { max-height: 68vh; }
+      .lb-player { width: 96vw; }
+      .lb-close { top: 12px; right: 14px; font-size: 30px; }
+      .lb-stage figcaption { font-size: 11px; padding: 0 12px; }
+    }
+    .lb-player { width:min(90vw,1100px); aspect-ratio:16/9; max-height:82vh; border:0; background:#000; }
+    video.lb-player { object-fit:contain; }
+    .lb-external { color:#cfcdc8; text-align:center; font-family:var(--font-mono); font-size:13px; }
+    .lb-external a { color:var(--accent); display:inline-block; margin-top:10px; }
+    [hidden] { display:none !important; }
+
+    @media (prefers-reduced-motion:reduce) { * { animation-duration:.001ms !important; transition-duration:.001ms !important; } .card { opacity:1; transform:none; } }
+  </style>
+
+  <script is:inline>
+    const GAS_BASE = document.body.dataset.api;
+    const API_FOTO = GAS_BASE + "?api=true";
+    const API_ALBUM = GAS_BASE + "?albumler=true";
+    const API_AYARLAR = GAS_BASE + "?ayarlar=true";
+    const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Crect width='4' height='5' fill='%23222'/%3E%3C/svg%3E";
+
+    let veri = [];
+    let albumler = {};   // { ad: [items] }
+    let tekiller = [];
+    let aktifKategori = "hepsi";
+    let albumBilgi = {};   // { albümAdı: { kapak, aciklama, kategori } }
+
+    // Albüm kapağı: elle verilen kapak → yoksa albümün ilk içeriği
+    function albumKapak(ad, items) {
+      const bilgi = albumBilgi[ad];
+      if (bilgi && bilgi.kapak && String(bilgi.kapak).trim()) return resolveImg(bilgi.kapak);
+      const ilk = items[0];
+      return isVideo(ilk) ? videoPoster(ilk) : resolveImg(ilk.drive_linki);
+    }
+
+    function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+    // --- görsel/video çözümleyiciler ---
+    function resolveImg(url){
+      if(!url) return PLACEHOLDER;
+      url=String(url).trim();
+      if(url.includes("drive.google")||url.includes("docs.google")){
+        const m=url.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/)||url.match(/[?&]id=([a-zA-Z0-9_-]{10,})/)||url.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+        if(m) return "https://drive.google.com/thumbnail?id="+m[1]+"&sz=w2000";
+      }
+      return url;
+    }
+    function ytId(u){ const m=String(u).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/); return m?m[1]:null; }
+    function vimeoId(u){ const m=String(u).match(/vimeo\.com\/(?:video\/)?(\d+)/); return m?m[1]:null; }
+    function driveId(u){ u=String(u); if(!(u.includes("drive.google")||u.includes("docs.google"))) return null; const m=u.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/)||u.match(/[?&]id=([a-zA-Z0-9_-]{10,})/)||u.match(/\/d\/([a-zA-Z0-9_-]{10,})/); return m?m[1]:null; }
+    function isVideoFile(u){ return /\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i.test(String(u)); }
+    function isVideo(it){ return !!(it && it.video_linki && String(it.video_linki).trim()); }
+    function videoPoster(it){
+      if(it.drive_linki && String(it.drive_linki).trim()) return resolveImg(it.drive_linki);
+      const v=it.video_linki||""; const y=ytId(v); if(y) return "https://img.youtube.com/vi/"+y+"/hqdefault.jpg";
+      const d=driveId(v); if(d) return "https://drive.google.com/thumbnail?id="+d+"&sz=w2000"; return PLACEHOLDER;
+    }
+    function playerHtml(v){
+      v=String(v||"").trim();
+      const y=ytId(v); if(y) return '<iframe class="lb-player" src="https://www.youtube.com/embed/'+y+'?autoplay=1&rel=0&playsinline=1" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>';
+      const vi=vimeoId(v); if(vi) return '<iframe class="lb-player" src="https://player.vimeo.com/video/'+vi+'?autoplay=1" allow="autoplay; fullscreen" allowfullscreen></iframe>';
+      const d=driveId(v); if(d) return '<iframe class="lb-player" src="https://drive.google.com/file/d/'+d+'/preview" allow="autoplay" allowfullscreen></iframe>';
+      if(isVideoFile(v)) return '<video class="lb-player" src="'+esc(v)+'" controls autoplay playsinline></video>';
+      return '<div class="lb-external"><p>Bu video buraya gömülemiyor.</p><a href="'+esc(v)+'" target="_blank" rel="noopener">Kaynağında aç →</a></div>';
+    }
+
+    // ===== TEMA =====
+    document.getElementById("tema-btn").addEventListener("click", function(){
+      const cur=document.documentElement.getAttribute("data-theme");
+      const next=cur==="dark"?"light":"dark";
+      document.documentElement.setAttribute("data-theme",next);
+      try{ localStorage.setItem("tema",next); }catch(e){}
+    });
+
+    // ===== REVEAL =====
+    const io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } }); },{ rootMargin:"0px 0px -6% 0px" });
+
+    // ===== LIGHTBOX =====
+    const lb=document.getElementById("lightbox");
+    const lbMedia=document.getElementById("lb-media");
+    const lbCap=document.getElementById("lb-cap");
+    const lbCounter=document.getElementById("lb-counter");
+    let lbList=[], lbIdx=0;
+    function lbOpen(items,start){ lbList=items; lbIdx=start||0; lbRender(); lb.hidden=false; requestAnimationFrame(function(){ lb.classList.add("show"); }); document.body.style.overflow="hidden"; }
+    function lbRender(){
+      const it=lbList[lbIdx];
+      if(isVideo(it)) lbMedia.innerHTML=playerHtml(it.video_linki);
+      else lbMedia.innerHTML='<img src="'+resolveImg(it.drive_linki)+'" alt="'+esc(it.baslik||"")+'" onerror="this.src=\''+PLACEHOLDER+'\'"/>';
+      lbCap.textContent=[it.baslik,it.aciklama].filter(Boolean).join(" — ");
+      lbCounter.textContent=lbList.length>1 ? (lbIdx+1)+" / "+lbList.length : "";
+      document.getElementById("lb-prev").hidden=lbList.length<2;
+      document.getElementById("lb-next").hidden=lbList.length<2;
+    }
+    function lbClose(){ lb.classList.remove("show"); lbMedia.innerHTML=""; setTimeout(function(){ lb.hidden=true; },300); document.body.style.overflow=""; }
+    function lbStep(d){ lbIdx=(lbIdx+d+lbList.length)%lbList.length; lbRender(); }
+    document.getElementById("lb-close").onclick=lbClose;
+    document.getElementById("lb-prev").onclick=function(){ lbStep(-1); };
+    document.getElementById("lb-next").onclick=function(){ lbStep(1); };
+    lb.addEventListener("click", function(e){ if(e.target===lb) lbClose(); });
+    document.addEventListener("keydown", function(e){ if(lb.hidden) return; if(e.key==="Escape") lbClose(); if(e.key==="ArrowLeft") lbStep(-1); if(e.key==="ArrowRight") lbStep(1); });
+
+    // ===== KART OLUŞTURUCU =====
+    function kartYap(opts){
+      // opts: { poster, rozet, kategori, baslik, aciklama, video, albumCount, onClick }
+      const card=document.createElement("div");
+      card.className="card";
+      card.innerHTML=
+        '<div class="card-frame">'+
+          '<img src="'+opts.poster+'" alt="'+esc(opts.baslik)+'" loading="lazy" onerror="this.src=\''+PLACEHOLDER+'\'"/>'+
+          (opts.video ? '<span class="play-overlay"><span class="play-badge"><svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span></span>' : '')+
+          '<span class="frame-no">'+esc(opts.rozet)+'</span>'+
+          (opts.kategori ? '<span class="card-cat">'+esc(opts.kategori)+'</span>' : '')+
+          (opts.albumCount ? '<span class="album-badge">◫ '+opts.albumCount+'</span>' : '')+
+        '</div>'+
+        '<div class="card-meta"><h3>'+esc(opts.baslik)+'</h3><p>'+esc(opts.aciklama||"")+'</p></div>';
+      card.addEventListener("click", opts.onClick);
+      io.observe(card);
+      return card;
+    }
+    function itemToLb(x){ return { drive_linki:x.drive_linki, video_linki:x.video_linki, baslik:x.baslik, aciklama:x.aciklama }; }
+
+    // ===== LİSTE =====
+    // Kategori filtresini çiz (tek kategori varsa hiç gösterme)
+    function renderFiltre(){
+      const albKats=Object.keys(albumBilgi).map(function(ad){ return (albumBilgi[ad].kategori||"").trim(); });
+      const kats=Array.from(new Set(veri.map(function(x){ return (x.kategori||"").trim(); }).concat(albKats).filter(Boolean)));
+      const f=document.getElementById("filtre");
+      if(kats.length<2){ f.innerHTML=""; return; }
+      const hepsi=["hepsi"].concat(kats);
+      f.innerHTML=hepsi.map(function(k){
+        return '<button data-k="'+esc(k)+'" class="'+(k===aktifKategori?"active":"")+'">'+esc(k==="hepsi"?"Hepsi":k)+'</button>';
+      }).join("");
+      f.querySelectorAll("button").forEach(function(b){
+        b.onclick=function(){ aktifKategori=b.dataset.k; renderFiltre(); renderListe(); };
+      });
+    }
+
+    function renderListe(){
+      const albBolum=document.getElementById("album-bolum");
+      const tekBolum=document.getElementById("tekil-bolum");
+      const hepsiMi=(aktifKategori==="hepsi");
+
+      // Albüm: içindeki HERHANGİ bir içerik kategoriyle eşleşiyorsa albüm listede kalır
+      const albAd=Object.keys(albumler).filter(function(ad){
+        if(hepsiMi) return true;
+        const bilgi=albumBilgi[ad]||{};
+        if((bilgi.kategori||"").trim()===aktifKategori) return true;
+        return albumler[ad].some(function(x){ return (x.kategori||"").trim()===aktifKategori; });
+      });
+      const tekList=tekiller.filter(function(it){
+        return hepsiMi || (it.kategori||"").trim()===aktifKategori;
+      });
+
+      albBolum.classList.toggle("hidden", albAd.length===0);
+      if(albAd.length){
+        document.getElementById("album-say").textContent=albAd.length+" albüm";
+        const g=document.getElementById("album-grid"); g.innerHTML="";
+        albAd.forEach(function(ad){
+          const items=albumler[ad];
+          const bilgi=albumBilgi[ad]||{};
+          const elleKapak=!!(bilgi.kapak&&String(bilgi.kapak).trim());
+          g.appendChild(kartYap({
+            poster: albumKapak(ad, items),
+            rozet:"ALBÜM",
+            kategori: bilgi.kategori || items[0].kategori || "",
+            baslik: ad,
+            aciklama: bilgi.aciklama || (items.length+" içerik"),
+            video: elleKapak ? false : isVideo(items[0]),
+            albumCount: items.length,
+            onClick:function(){ git(ad); }
+          }));
+        });
+      }
+
+      tekBolum.classList.toggle("hidden", tekList.length===0);
+      if(tekList.length){
+        document.getElementById("tekil-say").textContent=tekList.length+" çalışma";
+        const g=document.getElementById("tekil-grid"); g.innerHTML="";
+        tekList.forEach(function(it,i){
+          const vid=isVideo(it);
+          g.appendChild(kartYap({
+            poster: vid?videoPoster(it):resolveImg(it.drive_linki),
+            rozet: vid?"VİDEO":"KARE",
+            kategori:it.kategori||"", baslik:it.baslik||"", aciklama:it.aciklama||"",
+            video:vid,
+            onClick:function(){ lbOpen(tekList.map(itemToLb), i); }
+          }));
+        });
+      }
+    }
+
+    // ===== ALBÜM DETAY =====
+    function renderAlbum(ad){
+      const items=albumler[ad];
+      const g=document.getElementById("album-detay-grid");
+      document.getElementById("album-baslik").textContent=ad;
+      if(!items){ g.innerHTML=""; document.getElementById("album-alt").textContent="Albüm bulunamadı."; return; }
+      const bilgi=albumBilgi[ad]||{};
+      document.getElementById("album-alt").textContent =
+        bilgi.aciklama ? (bilgi.aciklama+" · "+items.length+" içerik") : (items.length+" içerik");
+      document.title=ad+" — Çalışmalarım";
+      g.innerHTML="";
+      items.forEach(function(it,i){
+        const vid=isVideo(it);
+        g.appendChild(kartYap({
+          poster: vid?videoPoster(it):resolveImg(it.drive_linki),
+          rozet: vid?"VİDEO":"KARE",
+          kategori:it.kategori||"", baslik:it.baslik||"", aciklama:it.aciklama||"",
+          video:vid,
+          onClick:function(){ lbOpen(items.map(itemToLb), i); }
+        }));
+      });
+    }
+
+    // ===== YÖNLENDİRME =====
+    function albumParam(){ return new URLSearchParams(location.search).get("album"); }
+    function git(ad){ history.pushState({}, "", ad ? ("/calismalar?album="+encodeURIComponent(ad)) : "/calismalar"); render(); window.scrollTo({top:0}); }
+    document.getElementById("geri-btn").addEventListener("click", function(e){ e.preventDefault(); git(null); });
+    window.addEventListener("popstate", render);
+
+    function render(){
+      const ad=albumParam();
+      const liste=document.getElementById("liste-view");
+      const alb=document.getElementById("album-view");
+      if(ad && albumler[ad]){ liste.hidden=true; alb.hidden=false; renderAlbum(ad); }
+      else { alb.hidden=true; liste.hidden=false; document.title="Çalışmalarım — Portfolyo"; }
+    }
+
+    // ===== VERİ =====
+    async function yukle(){
+      const loader=document.getElementById("liste-loader");
+      const empty=document.getElementById("liste-empty");
+      try{
+        const [fotoRes, albRes] = await Promise.all([
+          fetch(API_FOTO).then(function(r){ return r.json(); }),
+          fetch(API_ALBUM).then(function(r){ return r.json(); }).catch(function(){ return []; })
+        ]);
+        veri = fotoRes;
+        albumBilgi = {};
+        (albRes||[]).forEach(function(a){
+          if(a.ad) albumBilgi[a.ad] = { kapak:a.kapak||"", aciklama:a.aciklama||"", kategori:a.kategori||"" };
+        });
+        loader.style.display="none";
+        if(!veri || !veri.length){ empty.classList.remove("hidden"); return; }
+        albumler={}; tekiller=[];
+        veri.forEach(function(it){ const a=(it["albüm"]||"").trim(); if(a){ (albumler[a]=albumler[a]||[]).push(it); } else { tekiller.push(it); } });
+        renderFiltre(); renderListe(); render();
+      }catch(err){
+        console.error("Çalışmalar yüklenemedi:",err);
+        loader.style.display="none"; empty.innerText="Çalışmalar yüklenirken hata oluştu."; empty.classList.remove("hidden");
+      }
+    }
+    async function ayarlar(){
+      try{
+        const a=await (await fetch(API_AYARLAR)).json();
+        const igUrl=a.instagram ? (a.instagram.startsWith("http")?a.instagram:"https://instagram.com/"+String(a.instagram).replace(/^@/,"")) : "";
+        const waUrl=a.whatsapp ? ("https://wa.me/"+String(a.whatsapp).replace(/[^\d]/g,"")) : "";
+        if(waUrl){ const w=document.getElementById("fab-wa"); w.href=waUrl; w.hidden=false; }
+        if(igUrl){ const g=document.getElementById("fab-ig"); g.href=igUrl; g.hidden=false; }
+      }catch(e){}
+    }
+
+    document.addEventListener("DOMContentLoaded", function(){
+      document.getElementById("yil").innerText=new Date().getFullYear();
+      const nav=document.getElementById("nav");
+      const onScroll=function(){ nav.style.background=window.scrollY>40?"color-mix(in srgb, var(--bg) 82%, transparent)":"transparent"; };
+      window.addEventListener("scroll",onScroll,{passive:true}); onScroll();
+      yukle(); ayarlar();
+    });
+  </script>
+</body>
+</html>

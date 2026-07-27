@@ -1,0 +1,370 @@
+---
+// src/pages/gunce.astro
+// ------------------------------------------------------------------
+// GÜNCE — tam yazı listesi + tek yazı okuma görünümü
+// /gunce            -> tüm yazılar (kategori filtreli)
+// /gunce?id=XYZ     -> tek yazı (ana sayfa kartları buraya bağlanır)
+// İstemci tarafında render; geri tuşu ve paylaşılabilir link destekli.
+// ------------------------------------------------------------------
+import { GAS_BASE } from "../config.js";
+---
+
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Günce — Kadraj Notları</title>
+  <meta name="description" content="Fotoğrafçılık üzerine notlar, teknik rehberler ve saha deneyimleri." />
+
+  <script is:inline>
+    (function () {
+      try {
+        var t = localStorage.getItem('tema');
+        if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body data-api={GAS_BASE}>
+
+  <div class="grain" aria-hidden="true"></div>
+  <div class="crop-marks" aria-hidden="true">
+    <span class="cm cm-tl"></span><span class="cm cm-tr"></span>
+    <span class="cm cm-bl"></span><span class="cm cm-br"></span>
+  </div>
+
+  <div class="floating" id="floating" aria-label="Hızlı iletişim">
+    <a href="#" id="fab-wa" class="fab" target="_blank" rel="noopener" title="WhatsApp" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.7-.84-1.96-.94-.26-.1-.45-.15-.64.15-.19.29-.74.94-.9 1.13-.17.19-.33.22-.62.07-.29-.15-1.22-.45-2.32-1.43-.86-.77-1.44-1.71-1.6-2-.17-.29-.02-.45.13-.6.13-.13.29-.33.44-.5.15-.17.19-.29.29-.48.1-.19.05-.36-.02-.5-.07-.15-.64-1.55-.88-2.12-.23-.56-.47-.48-.64-.49l-.55-.01c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.14.19 2.01 3.07 4.88 4.3.68.29 1.21.47 1.63.6.68.22 1.31.19 1.8.12.55-.08 1.7-.7 1.94-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.34zM12.05 21.7h-.01a9.6 9.6 0 0 1-4.9-1.34l-.35-.21-3.64.96.97-3.55-.23-.36a9.6 9.6 0 0 1-1.47-5.12c0-5.31 4.32-9.63 9.64-9.63a9.58 9.58 0 0 1 9.63 9.64c0 5.31-4.32 9.62-9.64 9.62zM20.5 3.49A11.5 11.5 0 0 0 12.05.09C5.7.09.54 5.25.53 11.59a11.48 11.48 0 0 0 1.54 5.75L.44 23.9l6.71-1.76a11.5 11.5 0 0 0 5.49 1.4h.01c6.34 0 11.5-5.16 11.5-11.5a11.43 11.43 0 0 0-3.65-8.55z"/></svg>
+    </a>
+    <a href="#" id="fab-ig" class="fab" target="_blank" rel="noopener" title="Instagram" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"/></svg>
+    </a>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav" id="nav">
+    <a href="/" class="nav-mark" aria-label="Ana sayfa">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <circle cx="15" cy="15" r="13" stroke="currentColor" stroke-width="1.2"/>
+        <circle cx="15" cy="15" r="4.5" stroke="currentColor" stroke-width="1.2"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a href="/calismalar">Çalışmalar</a>
+      <a href="/#hakkimda">Hakkımda</a>
+      <a href="/gunce" class="active">Günce</a>
+      <a href="/iletisim">İletişim</a>
+    </div>
+    <div class="nav-right">
+      <button id="tema-btn" class="tema-btn" aria-label="Temayı değiştir" title="Tema">
+        <svg class="ic-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg>
+        <svg class="ic-moon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a.6.6 0 0 0-.8-.77A9.5 9.5 0 1 0 21.3 15.3a.6.6 0 0 0-.8-.8z"/></svg>
+      </button>
+      <a href="/iletisim" class="nav-cta">Rezervasyon</a>
+    </div>
+  </nav>
+
+  <main class="gunce-main">
+
+    <!-- LİSTE GÖRÜNÜMÜ -->
+    <section id="liste-view">
+      <header class="gunce-hero">
+        <p class="section-label">GÜNCE</p>
+        <h1>Kadraj Notları</h1>
+        <p class="gunce-intro">Işık, sabır ve saha üzerine notlar; teknik rehberler ve çekim ardındaki hikâyeler.</p>
+      </header>
+
+      <div id="filtre" class="filtre"></div>
+      <div id="liste-grid" class="jgrid"></div>
+      <div id="liste-loader" class="loader"><div class="spinner"></div></div>
+      <p id="liste-empty" class="empty-state hidden">Henüz yazı yayınlanmadı.</p>
+    </section>
+
+    <!-- DETAY GÖRÜNÜMÜ -->
+    <article id="detay-view" hidden>
+      <a href="/gunce" class="geri" id="geri-btn">← Tüm yazılar</a>
+      <div id="detay-icerik"></div>
+      <nav class="komsu" id="komsu"></nav>
+    </article>
+
+  </main>
+
+  <footer class="footer">
+    <p>© <span id="yil"></span> — Tüm hakları saklıdır.</p>
+  </footer>
+
+  <style is:global>
+    /* ===== TEMA JETONLARI ===== */
+    [data-theme="dark"] {
+      --bg:#0d0d0f; --bg-elev:#141417; --fg:#f2f0ec; --fg-muted:#8f8d94; --fg-faint:#5a5960;
+      --line:rgba(242,240,236,0.11); --line-strong:rgba(242,240,236,0.22);
+      --accent:#c8a45c; --card:#17171b; --shadow:0 20px 50px -24px rgba(0,0,0,0.8);
+      --grain-blend:overlay; --grain-op:0.05;
+    }
+    [data-theme="light"] {
+      --bg:#f4f2ec; --bg-elev:#eae6dc; --fg:#17161a; --fg-muted:#6a6862; --fg-faint:#a29e94;
+      --line:rgba(23,22,26,0.12); --line-strong:rgba(23,22,26,0.26);
+      --accent:#8a6420; --card:#fbfaf6; --shadow:0 20px 50px -28px rgba(40,36,28,0.28);
+      --grain-blend:multiply; --grain-op:0.04;
+    }
+    :root {
+      --font-display:"Fraunces",serif; --font-body:"Inter",sans-serif; --font-mono:"IBM Plex Mono",monospace;
+      --ease:cubic-bezier(.16,1,.3,1);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:var(--bg); color:var(--fg); font-family:var(--font-body); -webkit-font-smoothing:antialiased; overflow-x:hidden; transition:background .5s ease, color .5s ease; }
+    a { color:inherit; text-decoration:none; }
+    h1,h2,h3 { font-family:var(--font-display); font-weight:500; margin:0; }
+    p { margin:0; }
+    img { display:block; max-width:100%; }
+    ::selection { background:var(--accent); color:var(--bg); }
+
+    .grain {
+      position:fixed; inset:0; pointer-events:none; z-index:200; opacity:var(--grain-op); mix-blend-mode:var(--grain-blend);
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    .crop-marks { position:fixed; inset:18px; pointer-events:none; z-index:90; }
+    .cm { position:absolute; width:16px; height:16px; }
+    .cm::before,.cm::after { content:""; position:absolute; background:var(--line-strong); }
+    .cm::before { width:100%; height:1px; top:0; }
+    .cm::after { width:1px; height:100%; left:0; }
+    .cm-tl { top:0; left:0; } .cm-tr { top:0; right:0; transform:scaleX(-1); }
+    .cm-bl { bottom:0; left:0; transform:scaleY(-1); } .cm-br { bottom:0; right:0; transform:scale(-1); }
+    @media (max-width:720px) { .crop-marks { display:none; } }
+
+    .floating { position:fixed; right:clamp(16px,3vw,30px); bottom:clamp(16px,3vw,30px); z-index:120; display:flex; flex-direction:column; gap:12px; }
+    .fab { width:46px; height:46px; border-radius:50%; display:grid; place-items:center; background:var(--card); color:var(--fg); border:1px solid var(--line-strong); box-shadow:var(--shadow); transition:transform .25s var(--ease), color .25s, border-color .25s; }
+    .fab:hover { transform:translateY(-3px); color:var(--accent); border-color:var(--accent); }
+    @media (max-width: 640px) {
+      .fab { width: 42px; height: 42px; }
+      .floating { right: 12px; bottom: 12px; gap: 10px; }
+    }
+
+
+    /* NAV */
+    .nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:20px clamp(24px,5vw,64px); backdrop-filter:blur(8px); transition:background .3s ease; }
+    .nav-mark { color:var(--fg); display:flex; }
+    .nav-links { display:flex; gap:30px; }
+    .nav-links a { font-family:var(--font-mono); font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:var(--fg-muted); transition:color 0.25s; }
+    .nav-links a:hover, .nav-links a.active { color:var(--fg); }
+    .nav-links a.active { position:relative; }
+    .nav-links a.active::after { content:""; position:absolute; left:0; right:0; bottom:-6px; height:1px; background:var(--accent); }
+    .nav-right { display:flex; align-items:center; gap:14px; }
+    .tema-btn { width:36px; height:36px; border-radius:50%; cursor:pointer; background:transparent; border:1px solid var(--line); color:var(--fg-muted); display:grid; place-items:center; transition:color .25s, border-color .25s, transform .4s var(--ease); }
+    .tema-btn:hover { color:var(--accent); border-color:var(--accent); transform:rotate(18deg); }
+    [data-theme="dark"] .ic-sun { display:block; } [data-theme="dark"] .ic-moon { display:none; }
+    [data-theme="light"] .ic-sun { display:none; } [data-theme="light"] .ic-moon { display:block; }
+    .nav-cta { font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; border:1px solid var(--line-strong); padding:8px 16px; border-radius:999px; color:var(--fg); transition:border-color 0.25s, color .25s; }
+    .nav-cta:hover { border-color:var(--accent); color:var(--accent); }
+    @media (max-width:760px) { .nav-links { display:none; } }
+
+    .gunce-main { max-width: 1160px; margin: 0 auto; padding: 140px clamp(24px,5vw,64px) 40px; min-height: 70vh; }
+    @media (max-width: 760px) { .gunce-main { padding-top: 160px; } }
+
+    /* LİSTE */
+    .gunce-hero { max-width:640px; margin-bottom:44px; }
+    .section-label { font-family:var(--font-mono); font-size:11px; letter-spacing:0.14em; color:var(--accent); text-transform:uppercase; margin-bottom:14px; }
+    .gunce-hero h1 { font-size:clamp(2.4rem,6vw,4rem); font-weight:300; letter-spacing:-0.02em; }
+    .gunce-intro { color:var(--fg-muted); font-size:1.05rem; line-height:1.6; margin-top:18px; }
+
+    .filtre { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:34px; }
+    .filtre button { font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--fg-muted); background:transparent; border:1px solid var(--line); border-radius:999px; padding:7px 15px; cursor:pointer; transition:color .2s, border-color .2s, background .2s; }
+    .filtre button:hover { color:var(--fg); }
+    .filtre button.active { color:var(--bg); background:var(--accent); border-color:var(--accent); }
+
+    .jgrid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:34px 26px; }
+    .jcard { cursor:pointer; display:flex; flex-direction:column; opacity:0; transform:translateY(24px); transition:opacity .7s var(--ease), transform .7s var(--ease); }
+    .jcard.in { opacity:1; transform:none; }
+    .jcard-cover { aspect-ratio:16/10; overflow:hidden; background:var(--bg-elev); border:1px solid var(--line); }
+    .jcard-cover img { width:100%; height:100%; object-fit:cover; transition:transform .9s var(--ease); }
+    .jcard:hover .jcard-cover img { transform:scale(1.05); }
+    .jcard-cat { font-family:var(--font-mono); font-size:10px; letter-spacing:0.1em; color:var(--accent); text-transform:uppercase; margin:16px 0 8px; }
+    .jcard h3 { font-size:1.3rem; font-weight:500; line-height:1.25; }
+    .jcard p { color:var(--fg-muted); font-size:0.92rem; line-height:1.55; margin-top:8px; }
+    .jcard-date { font-family:var(--font-mono); font-size:11px; color:var(--fg-faint); margin-top:14px; }
+
+    .loader { display:flex; justify-content:center; padding:60px 0; }
+    .spinner { width:26px; height:26px; border-radius:50%; border:2px solid var(--line); border-top-color:var(--accent); animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .empty-state { text-align:center; padding:60px 0; color:var(--fg-muted); }
+    .hidden { display:none !important; }
+
+    /* DETAY */
+    #detay-view { max-width:720px; margin:0 auto; }
+    .geri { display:inline-block; font-family:var(--font-mono); font-size:12px; letter-spacing:0.05em; color:var(--fg-muted); margin-bottom:34px; transition:color .2s; }
+    .geri:hover { color:var(--accent); }
+    .detay-cover { width:100%; aspect-ratio:16/9; object-fit:cover; border:1px solid var(--line); margin-bottom:30px; }
+    .detay-meta { display:flex; gap:12px; align-items:center; font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--fg-muted); margin-bottom:16px; }
+    .detay-meta .cat { color:var(--accent); }
+    .detay-title { font-size:clamp(2rem,5vw,3rem); font-weight:300; line-height:1.1; letter-spacing:-0.02em; margin-bottom:34px; }
+    .detay-body { font-size:1.12rem; line-height:1.85; color:var(--fg); }
+    .detay-body p { margin-bottom:1.4em; }
+    .detay-body p:first-letter { }
+
+    .komsu { display:flex; justify-content:space-between; gap:16px; margin-top:60px; padding-top:30px; border-top:1px solid var(--line); }
+    .komsu a { max-width:46%; }
+    .komsu .yon { font-family:var(--font-mono); font-size:10px; letter-spacing:0.1em; color:var(--fg-faint); text-transform:uppercase; }
+    .komsu .k-title { font-family:var(--font-display); font-size:1.05rem; margin-top:6px; color:var(--fg-muted); transition:color .2s; }
+    .komsu a:hover .k-title { color:var(--accent); }
+    .komsu .next { text-align:right; margin-left:auto; }
+
+    .footer { text-align:center; padding:40px 0; border-top:1px solid var(--line); }
+    .footer p { font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); }
+
+    @media (prefers-reduced-motion:reduce) { * { animation-duration:.001ms !important; transition-duration:.001ms !important; } .jcard { opacity:1; transform:none; } }
+  </style>
+
+  <script is:inline>
+    const GAS_BASE = document.body.dataset.api;
+    const API_BLOG = GAS_BASE + "?blog=true";
+    const API_AYARLAR = GAS_BASE + "?ayarlar=true";
+    const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 10'%3E%3Crect width='16' height='10' fill='%23222'/%3E%3C/svg%3E";
+
+    let yazilar = [];
+    let aktifKategori = "hepsi";
+
+    function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+    function kirp(t,n){ t=String(t||"").replace(/\s+/g," ").trim(); return t.length>n ? t.slice(0,n).trim()+"…" : t; }
+    function resolveImg(url){
+      if(!url) return "";
+      url=String(url).trim();
+      if(url.includes("drive.google")||url.includes("docs.google")){
+        const m=url.match(/\/file\/d\/([a-zA-Z0-9_-]{10,})/)||url.match(/[?&]id=([a-zA-Z0-9_-]{10,})/)||url.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+        if(m) return "https://drive.google.com/thumbnail?id="+m[1]+"&sz=w2000";
+      }
+      return url;
+    }
+    function paragraflar(metin){
+      return String(metin||"").split(/\n{2,}/).map(function(b){
+        b=b.trim(); if(!b) return "";
+        return "<p>"+esc(b).replace(/\n/g,"<br>")+"</p>";
+      }).join("");
+    }
+    function getId(){ return new URLSearchParams(location.search).get("id"); }
+
+    // ===== TEMA =====
+    document.getElementById("tema-btn").addEventListener("click", function(){
+      const cur=document.documentElement.getAttribute("data-theme");
+      const next=cur==="dark"?"light":"dark";
+      document.documentElement.setAttribute("data-theme",next);
+      try{ localStorage.setItem("tema",next); }catch(e){}
+    });
+
+    // ===== REVEAL =====
+    const io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target);} }); },{ rootMargin:"0px 0px -8% 0px" });
+
+    // ===== LİSTE =====
+    function renderFiltre(){
+      const kats=["hepsi"].concat(Array.from(new Set(yazilar.map(function(y){ return (y.kategori||"").trim(); }).filter(Boolean))));
+      const f=document.getElementById("filtre");
+      if(kats.length<=2){ f.innerHTML=""; return; }
+      f.innerHTML=kats.map(function(k){
+        const et=k==="hepsi"?"Hepsi":k;
+        return '<button data-k="'+esc(k)+'" class="'+(k===aktifKategori?"active":"")+'">'+esc(et)+'</button>';
+      }).join("");
+      f.querySelectorAll("button").forEach(function(b){
+        b.onclick=function(){ aktifKategori=b.dataset.k; renderFiltre(); renderGrid(); };
+      });
+    }
+    function renderGrid(){
+      const grid=document.getElementById("liste-grid");
+      const list=aktifKategori==="hepsi"?yazilar:yazilar.filter(function(y){ return (y.kategori||"").trim()===aktifKategori; });
+      grid.innerHTML="";
+      list.forEach(function(y){
+        const card=document.createElement("div");
+        card.className="jcard";
+        card.innerHTML=
+          '<div class="jcard-cover"><img src="'+resolveImg(y.kapak_gorseli)+'" alt="'+esc(y.baslik)+'" loading="lazy" onerror="this.style.opacity=0"/></div>'+
+          '<span class="jcard-cat">'+esc(y.kategori||"GÜNCE")+'</span>'+
+          '<h3>'+esc(y.baslik)+'</h3>'+
+          '<p>'+esc(kirp(y.ozet||y.icerik,150))+'</p>'+
+          '<span class="jcard-date">'+esc(y.tarih||"")+'</span>';
+        card.onclick=function(){ git(y.id); };
+        grid.appendChild(card);
+        io.observe(card);
+      });
+    }
+
+    // ===== DETAY =====
+    function renderDetay(id){
+      const idx=yazilar.findIndex(function(y){ return String(y.id)===String(id); });
+      const y=yazilar[idx];
+      const c=document.getElementById("detay-icerik");
+      if(!y){ c.innerHTML='<p class="empty-state">Yazı bulunamadı.</p>'; document.getElementById("komsu").innerHTML=""; return; }
+
+      document.title=y.baslik+" — Günce";
+      const kapak=y.kapak_gorseli ? '<img class="detay-cover" src="'+resolveImg(y.kapak_gorseli)+'" alt="'+esc(y.baslik)+'" onerror="this.remove()"/>' : "";
+      c.innerHTML=
+        kapak+
+        '<div class="detay-meta">'+(y.kategori?'<span class="cat">'+esc(y.kategori)+'</span><span>·</span>':'')+'<span>'+esc(y.tarih||"")+'</span></div>'+
+        '<h1 class="detay-title">'+esc(y.baslik)+'</h1>'+
+        '<div class="detay-body">'+(paragraflar(y.icerik)|| '<p>'+esc(y.ozet||"")+'</p>')+'</div>';
+
+      // komşu yazılar (liste sırası: en yeni önce)
+      const onceki=yazilar[idx+1]; // daha eski
+      const sonraki=yazilar[idx-1]; // daha yeni
+      const k=document.getElementById("komsu");
+      let html="";
+      if(onceki) html+='<a href="/gunce?id='+encodeURIComponent(onceki.id)+'" data-id="'+esc(onceki.id)+'"><div class="yon">← Önceki</div><div class="k-title">'+esc(kirp(onceki.baslik,40))+'</div></a>';
+      if(sonraki) html+='<a class="next" href="/gunce?id='+encodeURIComponent(sonraki.id)+'" data-id="'+esc(sonraki.id)+'"><div class="yon">Sonraki →</div><div class="k-title">'+esc(kirp(sonraki.baslik,40))+'</div></a>';
+      k.innerHTML=html;
+      k.querySelectorAll("a").forEach(function(a){ a.onclick=function(e){ e.preventDefault(); git(a.dataset.id); }; });
+    }
+
+    // ===== YÖNLENDİRME =====
+    function git(id){ history.pushState({}, "", id ? ("/gunce?id="+encodeURIComponent(id)) : "/gunce"); render(); window.scrollTo({top:0}); }
+    document.getElementById("geri-btn").addEventListener("click", function(e){ e.preventDefault(); git(null); });
+    window.addEventListener("popstate", render);
+
+    function render(){
+      const id=getId();
+      const liste=document.getElementById("liste-view");
+      const detay=document.getElementById("detay-view");
+      if(id){ liste.hidden=true; detay.hidden=false; renderDetay(id); document.title="Yazı — Günce"; }
+      else { detay.hidden=true; liste.hidden=false; document.title="Günce — Kadraj Notları"; }
+    }
+
+    // ===== VERİ =====
+    async function yukle(){
+      const loader=document.getElementById("liste-loader");
+      const empty=document.getElementById("liste-empty");
+      try{
+        yazilar=await (await fetch(API_BLOG)).json();
+        loader.style.display="none";
+        if(!yazilar || !yazilar.length){ empty.classList.remove("hidden"); return; }
+        renderFiltre(); renderGrid(); render();
+      }catch(err){
+        console.error("Günce yüklenemedi:",err);
+        loader.style.display="none";
+        empty.innerText="Yazılar yüklenirken hata oluştu."; empty.classList.remove("hidden");
+      }
+    }
+
+    async function ayarlar(){
+      try{
+        const a=await (await fetch(API_AYARLAR)).json();
+        const igUrl=a.instagram ? (a.instagram.startsWith("http")?a.instagram:"https://instagram.com/"+String(a.instagram).replace(/^@/,"")) : "";
+        const waUrl=a.whatsapp ? ("https://wa.me/"+String(a.whatsapp).replace(/[^\d]/g,"")) : "";
+        if(waUrl){ const w=document.getElementById("fab-wa"); w.href=waUrl; w.hidden=false; }
+        if(igUrl){ const g=document.getElementById("fab-ig"); g.href=igUrl; g.hidden=false; }
+      }catch(e){}
+    }
+
+    document.addEventListener("DOMContentLoaded", function(){
+      document.getElementById("yil").innerText=new Date().getFullYear();
+      const nav=document.getElementById("nav");
+      const onScroll=function(){ nav.style.background=window.scrollY>40?"color-mix(in srgb, var(--bg) 82%, transparent)":"transparent"; };
+      window.addEventListener("scroll",onScroll,{passive:true}); onScroll();
+      yukle(); ayarlar();
+    });
+  </script>
+</body>
+</html>

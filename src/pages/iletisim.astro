@@ -1,0 +1,479 @@
+---
+// src/pages/iletisim.astro
+// ------------------------------------------------------------------
+// İLETİŞİM — konu seçimli teklif/mesaj formu + iletişim bilgileri
+// Form, Apps Script'teki ?iletisim=true ucuna gider; mesaj hem e-posta
+// olarak gönderilir hem de "Mesajlar" sayfasına kaydedilir.
+// ------------------------------------------------------------------
+import { GAS_BASE } from "../config.js";
+---
+
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>İletişim — Rezervasyon ve Teklif</title>
+  <meta name="description" content="Düğün, portre, konser ve ticari çekimler için rezervasyon ve teklif formu." />
+
+  <script is:inline>
+    (function () {
+      try {
+        var t = localStorage.getItem('tema');
+        if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body data-api={GAS_BASE}>
+
+  <div class="grain" aria-hidden="true"></div>
+  <div class="crop-marks" aria-hidden="true">
+    <span class="cm cm-tl"></span><span class="cm cm-tr"></span>
+    <span class="cm cm-bl"></span><span class="cm cm-br"></span>
+  </div>
+
+  <div class="floating" id="floating" aria-label="Hızlı iletişim">
+    <a href="#" id="fab-wa" class="fab" target="_blank" rel="noopener" title="WhatsApp" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.7-.84-1.96-.94-.26-.1-.45-.15-.64.15-.19.29-.74.94-.9 1.13-.17.19-.33.22-.62.07-.29-.15-1.22-.45-2.32-1.43-.86-.77-1.44-1.71-1.6-2-.17-.29-.02-.45.13-.6.13-.13.29-.33.44-.5.15-.17.19-.29.29-.48.1-.19.05-.36-.02-.5-.07-.15-.64-1.55-.88-2.12-.23-.56-.47-.48-.64-.49l-.55-.01c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.14.19 2.01 3.07 4.88 4.3.68.29 1.21.47 1.63.6.68.22 1.31.19 1.8.12.55-.08 1.7-.7 1.94-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.34zM12.05 21.7h-.01a9.6 9.6 0 0 1-4.9-1.34l-.35-.21-3.64.96.97-3.55-.23-.36a9.6 9.6 0 0 1-1.47-5.12c0-5.31 4.32-9.63 9.64-9.63a9.58 9.58 0 0 1 9.63 9.64c0 5.31-4.32 9.62-9.64 9.62zM20.5 3.49A11.5 11.5 0 0 0 12.05.09C5.7.09.54 5.25.53 11.59a11.48 11.48 0 0 0 1.54 5.75L.44 23.9l6.71-1.76a11.5 11.5 0 0 0 5.49 1.4h.01c6.34 0 11.5-5.16 11.5-11.5a11.43 11.43 0 0 0-3.65-8.55z"/></svg>
+    </a>
+    <a href="#" id="fab-ig" class="fab" target="_blank" rel="noopener" title="Instagram" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"/></svg>
+    </a>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav" id="nav">
+    <a href="/" class="nav-mark" aria-label="Ana sayfa">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <circle cx="15" cy="15" r="13" stroke="currentColor" stroke-width="1.2"/>
+        <circle cx="15" cy="15" r="4.5" stroke="currentColor" stroke-width="1.2"/>
+      </svg>
+    </a>
+    <div class="nav-links">
+      <a href="/calismalar">Çalışmalar</a>
+      <a href="/#hakkimda">Hakkımda</a>
+      <a href="/gunce">Günce</a>
+      <a href="/iletisim" class="active">İletişim</a>
+    </div>
+    <div class="nav-right">
+      <button id="tema-btn" class="tema-btn" aria-label="Temayı değiştir" title="Tema">
+        <svg class="ic-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg>
+        <svg class="ic-moon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a.6.6 0 0 0-.8-.77A9.5 9.5 0 1 0 21.3 15.3a.6.6 0 0 0-.8-.8z"/></svg>
+      </button>
+      <a href="#form" class="nav-cta">Teklif Al</a>
+    </div>
+  </nav>
+
+  <main class="ilt-main">
+
+    <header class="ilt-hero">
+      <p class="section-label">İLETİŞİM</p>
+      <h1>Bir sonraki kareyi<br/><em>birlikte</em> çekelim.</h1>
+      <p class="ilt-intro">
+        Düğün, portre, konser ya da ticari bir proje — aklınızdaki işi anlatın,
+        genellikle 24 saat içinde dönüş yapıyorum.
+      </p>
+    </header>
+
+    <div class="ilt-grid">
+
+      <!-- SOL: FORM -->
+      <section class="ilt-form-col" id="form">
+        <form id="ilt-form" novalidate>
+          <div class="f-row">
+            <div class="f-group">
+              <label for="f-ad">Ad Soyad <span class="req">*</span></label>
+              <input type="text" id="f-ad" name="ad" autocomplete="name" required />
+              <span class="f-err" id="e-ad"></span>
+            </div>
+            <div class="f-group">
+              <label for="f-email">E-posta <span class="req">*</span></label>
+              <input type="email" id="f-email" name="email" autocomplete="email" required />
+              <span class="f-err" id="e-email"></span>
+            </div>
+          </div>
+
+          <div class="f-row">
+            <div class="f-group">
+              <label for="f-telefon">Telefon</label>
+              <input type="tel" id="f-telefon" name="telefon" autocomplete="tel" placeholder="+90 5xx xxx xx xx" />
+            </div>
+            <div class="f-group">
+              <label for="f-tarih">Çekim Tarihi <small>(varsa)</small></label>
+              <input type="date" id="f-tarih" name="tarih" />
+            </div>
+          </div>
+
+          <div class="f-group">
+            <label for="f-konu">Konu <span class="req">*</span></label>
+            <select id="f-konu" name="konu" required>
+              <option value="">Bir konu seçin…</option>
+              <option value="Düğün / Nişan Çekimi">Düğün / Nişan Çekimi</option>
+              <option value="Portre Çekimi">Portre Çekimi</option>
+              <option value="Konser / Etkinlik">Konser / Etkinlik</option>
+              <option value="Ticari / Ürün Çekimi">Ticari / Ürün Çekimi</option>
+              <option value="Dış Mekan / Doğa">Dış Mekan / Doğa</option>
+              <option value="Video / Klip">Video / Klip</option>
+              <option value="İş Birliği">İş Birliği</option>
+              <option value="Diğer">Diğer</option>
+            </select>
+            <span class="f-err" id="e-konu"></span>
+          </div>
+
+          <div class="f-group">
+            <label for="f-mesaj">Mesajınız <span class="req">*</span></label>
+            <textarea id="f-mesaj" name="mesaj" rows="6" required
+              placeholder="Çekimin yeri, yaklaşık kişi sayısı, süre beklentisi ve aklınızdaki tarz hakkında birkaç cümle yazarsanız daha net bir teklif hazırlayabilirim."></textarea>
+            <div class="f-alt">
+              <span class="f-err" id="e-mesaj"></span>
+              <span class="f-count"><span id="mesaj-say">0</span> / 2000</span>
+            </div>
+          </div>
+
+          <!-- Bot tuzağı: gerçek kullanıcılar bunu görmez ve doldurmaz -->
+          <div class="honeypot" aria-hidden="true">
+            <label for="f-website">Web siteniz</label>
+            <input type="text" id="f-website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <button type="submit" class="f-submit" id="f-submit">Mesajı Gönder</button>
+          <p class="f-note">Bilgileriniz yalnızca size dönüş yapmak için kullanılır, üçüncü kişilerle paylaşılmaz.</p>
+
+          <div class="f-status hidden" id="f-status"></div>
+        </form>
+      </section>
+
+      <!-- SAĞ: BİLGİLER -->
+      <aside class="ilt-side">
+        <div class="side-block">
+          <p class="side-label">Doğrudan Ulaşın</p>
+          <a class="side-item" id="s-email" href="#">
+            <span class="si-ic">✉</span>
+            <span><strong id="s-email-t">—</strong><small>E-posta</small></span>
+          </a>
+          <a class="side-item" id="s-tel" href="#" hidden>
+            <span class="si-ic">☏</span>
+            <span><strong id="s-tel-t">—</strong><small>Telefon</small></span>
+          </a>
+          <a class="side-item" id="s-wa" href="#" target="_blank" rel="noopener" hidden>
+            <span class="si-ic">◍</span>
+            <span><strong>WhatsApp</strong><small>Hızlı yanıt</small></span>
+          </a>
+        </div>
+
+        <div class="side-block">
+          <p class="side-label">Konum</p>
+          <p class="side-text" id="s-konum">—</p>
+        </div>
+
+        <div class="side-block">
+          <p class="side-label">Yanıt Süresi</p>
+          <p class="side-text">Mesajlar genellikle 24 saat içinde yanıtlanır. Yoğun sezonda (Haziran–Eylül) bu süre 48 saati bulabilir.</p>
+        </div>
+
+        <div class="side-block">
+          <p class="side-label">Sosyal</p>
+          <div class="side-social" id="s-social"></div>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>© <span id="yil"></span> — Tüm hakları saklıdır.</p>
+  </footer>
+
+  <style is:global>
+    /* ===== TEMA JETONLARI ===== */
+    [data-theme="dark"] {
+      --bg:#0d0d0f; --bg-elev:#141417; --fg:#f2f0ec; --fg-muted:#8f8d94; --fg-faint:#5a5960;
+      --line:rgba(242,240,236,0.11); --line-strong:rgba(242,240,236,0.22);
+      --accent:#c8a45c; --card:#17171b; --shadow:0 20px 50px -24px rgba(0,0,0,0.8);
+      --grain-blend:overlay; --grain-op:0.05;
+      --field:#141417; --ok:#6bbf7a; --err:#d9705f;
+    }
+    [data-theme="light"] {
+      --bg:#f4f2ec; --bg-elev:#eae6dc; --fg:#17161a; --fg-muted:#6a6862; --fg-faint:#a29e94;
+      --line:rgba(23,22,26,0.12); --line-strong:rgba(23,22,26,0.26);
+      --accent:#8a6420; --card:#fbfaf6; --shadow:0 20px 50px -28px rgba(40,36,28,0.28);
+      --grain-blend:multiply; --grain-op:0.04;
+      --field:#ffffff; --ok:#2e7d46; --err:#c0392b;
+    }
+    :root { --font-display:"Fraunces",serif; --font-body:"Inter",sans-serif; --font-mono:"IBM Plex Mono",monospace; --ease:cubic-bezier(.16,1,.3,1); }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:var(--bg); color:var(--fg); font-family:var(--font-body); -webkit-font-smoothing:antialiased; overflow-x:hidden; transition:background .5s ease, color .5s ease; }
+    a { color:inherit; text-decoration:none; }
+    h1,h2,h3 { font-family:var(--font-display); font-weight:500; margin:0; }
+    p { margin:0; }
+    img { display:block; max-width:100%; }
+    ::selection { background:var(--accent); color:var(--bg); }
+
+    .grain { position:fixed; inset:0; pointer-events:none; z-index:200; opacity:var(--grain-op); mix-blend-mode:var(--grain-blend); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    .crop-marks { position:fixed; inset:18px; pointer-events:none; z-index:90; }
+    .cm { position:absolute; width:16px; height:16px; }
+    .cm::before,.cm::after { content:""; position:absolute; background:var(--line-strong); }
+    .cm::before { width:100%; height:1px; top:0; } .cm::after { width:1px; height:100%; left:0; }
+    .cm-tl { top:0; left:0; } .cm-tr { top:0; right:0; transform:scaleX(-1); }
+    .cm-bl { bottom:0; left:0; transform:scaleY(-1); } .cm-br { bottom:0; right:0; transform:scale(-1); }
+    @media (max-width:720px) { .crop-marks { display:none; } }
+
+    .floating { position:fixed; right:clamp(16px,3vw,30px); bottom:clamp(16px,3vw,30px); z-index:120; display:flex; flex-direction:column; gap:12px; }
+    .fab { width:46px; height:46px; border-radius:50%; display:grid; place-items:center; background:var(--card); color:var(--fg); border:1px solid var(--line-strong); box-shadow:var(--shadow); transition:transform .25s var(--ease), color .25s, border-color .25s; }
+    .fab:hover { transform:translateY(-3px); color:var(--accent); border-color:var(--accent); }
+    @media (max-width:640px) { .fab { width:42px; height:42px; } .floating { right:12px; bottom:12px; gap:10px; } }
+
+    /* NAV */
+    .nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:20px clamp(24px,5vw,64px); backdrop-filter:blur(8px); transition:background .3s ease; }
+    .nav-mark { color:var(--fg); display:flex; }
+    .nav-links { display:flex; gap:30px; }
+    .nav-links a { font-family:var(--font-mono); font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:var(--fg-muted); transition:color 0.25s; }
+    .nav-links a:hover, .nav-links a.active { color:var(--fg); }
+    .nav-links a.active { position:relative; }
+    .nav-links a.active::after { content:""; position:absolute; left:0; right:0; bottom:-6px; height:1px; background:var(--accent); }
+    .nav-right { display:flex; align-items:center; gap:14px; }
+    .tema-btn { width:36px; height:36px; border-radius:50%; cursor:pointer; background:transparent; border:1px solid var(--line); color:var(--fg-muted); display:grid; place-items:center; transition:color .25s, border-color .25s, transform .4s var(--ease); }
+    .tema-btn:hover { color:var(--accent); border-color:var(--accent); transform:rotate(18deg); }
+    [data-theme="dark"] .ic-sun { display:block; } [data-theme="dark"] .ic-moon { display:none; }
+    [data-theme="light"] .ic-sun { display:none; } [data-theme="light"] .ic-moon { display:block; }
+    .nav-cta { font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; border:1px solid var(--line-strong); padding:8px 16px; border-radius:999px; color:var(--fg); transition:border-color 0.25s, color .25s; }
+    .nav-cta:hover { border-color:var(--accent); color:var(--accent); }
+    @media (max-width:760px) {
+      .nav { flex-wrap:wrap; gap:10px 14px; padding:14px 16px; }
+      .nav-links { order:3; width:100%; gap:16px; justify-content:space-between; overflow-x:auto; scrollbar-width:none; }
+      .nav-links::-webkit-scrollbar { display:none; }
+      .nav-links a { font-size:10.5px; white-space:nowrap; }
+      .nav-cta { padding:7px 12px; font-size:10px; }
+      .nav-right { gap:10px; }
+    }
+
+    /* HERO */
+    .ilt-main { max-width:1160px; margin:0 auto; padding:150px clamp(24px,5vw,64px) 40px; min-height:70vh; }
+    @media (max-width:760px) { .ilt-main { padding-top:170px; } }
+    .ilt-hero { max-width:640px; margin-bottom:56px; }
+    .section-label { font-family:var(--font-mono); font-size:11px; letter-spacing:0.14em; color:var(--accent); text-transform:uppercase; margin-bottom:14px; }
+    .ilt-hero h1 { font-size:clamp(2.2rem,5.5vw,3.6rem); font-weight:300; letter-spacing:-0.02em; line-height:1.08; }
+    .ilt-hero h1 em { color:var(--accent); font-style:italic; font-weight:400; }
+    .ilt-intro { color:var(--fg-muted); font-size:1.05rem; line-height:1.65; margin-top:20px; }
+
+    /* IZGARA */
+    .ilt-grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); gap:56px; align-items:start; }
+    @media (max-width:900px) { .ilt-grid { grid-template-columns:1fr; gap:44px; } }
+
+    /* FORM */
+    .f-row { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    @media (max-width:560px) { .f-row { grid-template-columns:1fr; gap:0; } }
+    .f-group { margin-bottom:22px; }
+    .f-group label { display:block; font-family:var(--font-mono); font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--fg-muted); margin-bottom:9px; }
+    .f-group label small { text-transform:none; letter-spacing:0; font-style:italic; }
+    .req { color:var(--accent); }
+    .f-group input, .f-group select, .f-group textarea {
+      width:100%; background:var(--field); color:var(--fg);
+      border:1px solid var(--line); border-radius:2px; padding:13px 14px;
+      font-family:var(--font-body); font-size:0.96rem; outline:none;
+      transition:border-color .2s, background .2s;
+    }
+    .f-group textarea { resize:vertical; line-height:1.6; min-height:130px; }
+    .f-group input:focus, .f-group select:focus, .f-group textarea:focus { border-color:var(--accent); }
+    .f-group input::placeholder, .f-group textarea::placeholder { color:var(--fg-faint); }
+    .f-group select { cursor:pointer; appearance:none; background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%); background-position:calc(100% - 18px) 55%, calc(100% - 13px) 55%; background-size:5px 5px, 5px 5px; background-repeat:no-repeat; padding-right:40px; }
+    .f-group.hata input, .f-group.hata select, .f-group.hata textarea { border-color:var(--err); }
+    .f-err { display:block; font-family:var(--font-mono); font-size:10.5px; color:var(--err); margin-top:7px; min-height:13px; }
+    .f-alt { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .f-count { font-family:var(--font-mono); font-size:10.5px; color:var(--fg-faint); white-space:nowrap; }
+
+    .honeypot { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+
+    .f-submit {
+      font-family:var(--font-mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase;
+      background:var(--accent); color:var(--bg); border:none; border-radius:999px;
+      padding:16px 40px; cursor:pointer; transition:filter .2s, transform .15s var(--ease);
+    }
+    .f-submit:hover:not(:disabled) { filter:brightness(1.1); }
+    .f-submit:active:not(:disabled) { transform:translateY(1px); }
+    .f-submit:disabled { opacity:0.5; cursor:not-allowed; }
+    .f-note { font-family:var(--font-mono); font-size:10.5px; color:var(--fg-faint); margin-top:16px; line-height:1.6; }
+
+    .f-status { margin-top:24px; padding:18px 20px; border:1px solid var(--line-strong); border-radius:2px; font-size:0.95rem; line-height:1.6; }
+    .f-status.ok { border-color:var(--ok); color:var(--ok); }
+    .f-status.err { border-color:var(--err); color:var(--err); }
+    .hidden { display:none !important; }
+
+    /* YAN SÜTUN */
+    .ilt-side { display:flex; flex-direction:column; gap:34px; padding-left:clamp(0px,2vw,24px); }
+    @media (max-width:900px) { .ilt-side { padding-left:0; border-top:1px solid var(--line); padding-top:36px; } }
+    .side-label { font-family:var(--font-mono); font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); margin-bottom:16px; }
+    .side-item { display:flex; align-items:center; gap:14px; padding:13px 0; border-bottom:1px solid var(--line); transition:color .2s; }
+    .side-item:hover { color:var(--accent); }
+    .side-item .si-ic { width:34px; height:34px; flex-shrink:0; display:grid; place-items:center; border:1px solid var(--line-strong); border-radius:50%; font-size:14px; }
+    .side-item strong { display:block; font-weight:500; font-size:0.95rem; word-break:break-word; }
+    .side-item small { display:block; font-family:var(--font-mono); font-size:10px; color:var(--fg-muted); margin-top:3px; }
+    .side-text { color:var(--fg-muted); font-size:0.92rem; line-height:1.7; }
+    .side-social { display:flex; flex-wrap:wrap; gap:18px; }
+    .side-social a { font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.06em; color:var(--fg-muted); border-bottom:1px solid var(--line); padding-bottom:3px; }
+    .side-social a:hover { color:var(--accent); border-color:var(--accent); }
+
+    .footer { text-align:center; padding:40px 0; border-top:1px solid var(--line); margin-top:80px; }
+    .footer p { font-family:var(--font-mono); font-size:11px; color:var(--fg-muted); }
+
+    @media (prefers-reduced-motion:reduce) { * { animation-duration:.001ms !important; transition-duration:.001ms !important; } }
+  </style>
+
+  <script is:inline>
+    const GAS_BASE = document.body.dataset.api;
+    const API_AYARLAR = GAS_BASE + "?ayarlar=true";
+
+    function $(id) { return document.getElementById(id); }
+    function esc(s) { return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+    // ===== TEMA =====
+    $("tema-btn").addEventListener("click", function () {
+      const cur = document.documentElement.getAttribute("data-theme");
+      const next = cur === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      try { localStorage.setItem("tema", next); } catch (e) {}
+    });
+
+    // ===== KARAKTER SAYACI =====
+    $("f-mesaj").addEventListener("input", function () {
+      if (this.value.length > 2000) this.value = this.value.slice(0, 2000);
+      $("mesaj-say").innerText = this.value.length;
+    });
+
+    // ===== DOĞRULAMA =====
+    function hataGoster(alan, mesaj) {
+      $("f-" + alan).closest(".f-group").classList.add("hata");
+      const e = $("e-" + alan);
+      if (e) e.innerText = mesaj;
+    }
+    function hatalariTemizle() {
+      document.querySelectorAll(".f-group.hata").forEach(function (g) { g.classList.remove("hata"); });
+      document.querySelectorAll(".f-err").forEach(function (e) { e.innerText = ""; });
+    }
+    function dogrula(d) {
+      let ok = true;
+      if (!d.ad || d.ad.length < 2) { hataGoster("ad", "Lütfen adınızı yazın."); ok = false; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email || "")) { hataGoster("email", "Geçerli bir e-posta adresi girin."); ok = false; }
+      if (!d.konu) { hataGoster("konu", "Lütfen bir konu seçin."); ok = false; }
+      if (!d.mesaj || d.mesaj.length < 15) { hataGoster("mesaj", "Biraz daha ayrıntı yazar mısınız? (en az 15 karakter)"); ok = false; }
+      return ok;
+    }
+
+    // ===== GÖNDERİM =====
+    $("ilt-form").addEventListener("submit", async function (ev) {
+      ev.preventDefault();
+      hatalariTemizle();
+
+      const d = {
+        ad: $("f-ad").value.trim(),
+        email: $("f-email").value.trim(),
+        telefon: $("f-telefon").value.trim(),
+        tarih: $("f-tarih").value,
+        konu: $("f-konu").value,
+        mesaj: $("f-mesaj").value.trim(),
+        website: $("f-website").value.trim()   // bot tuzağı
+      };
+
+      const st = $("f-status");
+      st.className = "f-status hidden";
+
+      if (!dogrula(d)) {
+        st.className = "f-status err";
+        st.innerText = "Formda eksik veya hatalı alanlar var, lütfen kontrol edin.";
+        return;
+      }
+
+      const btn = $("f-submit");
+      btn.disabled = true;
+      btn.innerText = "Gönderiliyor…";
+
+      try {
+        const qs = Object.keys(d).map(function (k) {
+          return encodeURIComponent(k) + "=" + encodeURIComponent(d[k]);
+        }).join("&");
+
+        const res = await fetch(GAS_BASE + "?iletisim=true&" + qs);
+        const j = await res.json();
+
+        if (j && j.success) {
+          $("ilt-form").reset();
+          $("mesaj-say").innerText = "0";
+          st.className = "f-status ok";
+          st.innerText = "Mesajınız iletildi. En kısa sürede size dönüş yapacağım — teşekkürler!";
+          st.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else {
+          st.className = "f-status err";
+          st.innerText = (j && j.message) || "Mesaj gönderilemedi. Lütfen tekrar deneyin ya da doğrudan e-posta yazın.";
+        }
+      } catch (err) {
+        console.error("İletişim gönderimi:", err);
+        st.className = "f-status err";
+        st.innerText = "Bağlantı hatası. İnternetinizi kontrol edip tekrar deneyin ya da doğrudan e-posta yazın.";
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Mesajı Gönder";
+      }
+    });
+
+    // ===== AYARLAR (iletişim bilgileri) =====
+    async function ayarlariYukle() {
+      try {
+        const a = await (await fetch(API_AYARLAR)).json();
+
+        if (a.email) {
+          const el = $("s-email");
+          el.href = "mailto:" + a.email;
+          $("s-email-t").innerText = a.email;
+        }
+        if (a.telefon) {
+          const el = $("s-tel");
+          el.href = "tel:" + String(a.telefon).replace(/[^\d+]/g, "");
+          $("s-tel-t").innerText = a.telefon;
+          el.hidden = false;
+        }
+        if (a.konum) $("s-konum").innerText = a.konum;
+
+        const igUrl = a.instagram ? (String(a.instagram).startsWith("http") ? a.instagram : "https://instagram.com/" + String(a.instagram).replace(/^@/, "")) : "";
+        const waUrl = a.whatsapp ? ("https://wa.me/" + String(a.whatsapp).replace(/[^\d]/g, "")) : "";
+
+        if (waUrl) {
+          const s = $("s-wa"); s.href = waUrl; s.hidden = false;
+          const f = $("fab-wa"); f.href = waUrl; f.hidden = false;
+        }
+        if (igUrl) { const f = $("fab-ig"); f.href = igUrl; f.hidden = false; }
+
+        const social = $("s-social");
+        const ekle = function (ad, url) {
+          if (!url) return;
+          const el = document.createElement("a");
+          el.href = url; el.target = "_blank"; el.rel = "noopener"; el.innerText = ad;
+          social.appendChild(el);
+        };
+        ekle("Instagram", igUrl);
+        ekle("Behance", a.behance || "");
+        ekle("WhatsApp", waUrl);
+      } catch (e) {
+        console.error("Ayarlar yüklenemedi:", e);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      $("yil").innerText = new Date().getFullYear();
+      const nav = $("nav");
+      const onScroll = function () {
+        nav.style.background = window.scrollY > 40 ? "color-mix(in srgb, var(--bg) 82%, transparent)" : "transparent";
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+      ayarlariYukle();
+    });
+  </script>
+</body>
+</html>
