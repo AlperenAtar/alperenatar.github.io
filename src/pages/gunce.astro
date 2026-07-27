@@ -46,6 +46,9 @@ import { GAS_BASE } from "../config.js";
     <a href="#" id="fab-ig" class="fab" target="_blank" rel="noopener" title="Instagram" hidden>
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"/></svg>
     </a>
+    <a href="#" id="fab-mail" class="fab" title="E-posta" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="M3 6l9 6.5L21 6"/></svg>
+    </a>
   </div>
 
   <!-- NAV -->
@@ -56,7 +59,7 @@ import { GAS_BASE } from "../config.js";
         <circle cx="15" cy="15" r="4.5" stroke="currentColor" stroke-width="1.2"/>
       </svg>
     </a>
-    <div class="nav-links">
+    <div class="nav-links" id="nav-links">
       <a href="/calismalar">Çalışmalar</a>
       <a href="/#hakkimda">Hakkımda</a>
       <a href="/gunce" class="active">Günce</a>
@@ -68,8 +71,12 @@ import { GAS_BASE } from "../config.js";
         <svg class="ic-moon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a.6.6 0 0 0-.8-.77A9.5 9.5 0 1 0 21.3 15.3a.6.6 0 0 0-.8-.8z"/></svg>
       </button>
       <a href="/iletisim" class="nav-cta">Rezervasyon</a>
+      <button class="nav-burger" id="nav-burger" aria-label="Menü" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
+  <div class="nav-overlay" id="nav-overlay"></div>
 
   <main class="gunce-main">
 
@@ -164,7 +171,41 @@ import { GAS_BASE } from "../config.js";
     [data-theme="light"] .ic-sun { display:none; } [data-theme="light"] .ic-moon { display:block; }
     .nav-cta { font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; border:1px solid var(--line-strong); padding:8px 16px; border-radius:999px; color:var(--fg); transition:border-color 0.25s, color .25s; }
     .nav-cta:hover { border-color:var(--accent); color:var(--accent); }
-    @media (max-width:760px) { .nav-links { display:none; } }
+    /* Mobil menü */
+    .nav-burger { display:none; background:none; border:1px solid var(--line); width:36px; height:36px; border-radius:50%; cursor:pointer; padding:0; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+    .nav-burger span { display:block; width:16px; height:1.5px; background:var(--fg-muted); transition:transform .25s var(--ease), opacity .25s; }
+    .nav-burger.acik span:nth-child(1) { transform:translateY(5.5px) rotate(45deg); }
+    .nav-burger.acik span:nth-child(2) { opacity:0; }
+    .nav-burger.acik span:nth-child(3) { transform:translateY(-5.5px) rotate(-45deg); }
+    .nav-overlay { display:none; }
+
+    @media (max-width:760px) {
+      .nav { padding:14px 16px; }
+      .nav-burger { display:flex; }
+      .nav-cta { display:none; }
+
+      .nav-links {
+        position:fixed; top:0; right:0; bottom:0; width:270px; max-width:80vw;
+        flex-direction:column; align-items:stretch; gap:0;
+        background:var(--bg-elev); border-left:1px solid var(--line);
+        padding:88px 0 28px; z-index:130;
+        transform:translateX(100%); transition:transform .32s var(--ease);
+        box-shadow:var(--shadow); overflow-y:auto;
+      }
+      .nav-links.acik { transform:translateX(0); }
+      .nav-links a {
+        padding:18px 26px; font-size:12px;
+        border-bottom:1px solid var(--line); border-left:2px solid transparent;
+      }
+      .nav-links a.active { color:var(--fg); border-left-color:var(--accent); background:color-mix(in srgb, var(--accent) 8%, transparent); }
+      .nav-links a.active::after { display:none; }
+
+      .nav-overlay {
+        display:block; position:fixed; inset:0; background:rgba(0,0,0,0.55);
+        opacity:0; pointer-events:none; transition:opacity .3s; z-index:125;
+      }
+      .nav-overlay.acik { opacity:1; pointer-events:auto; }
+    }
 
     .gunce-main { max-width: 1160px; margin: 0 auto; padding: 140px clamp(24px,5vw,64px) 40px; min-height: 70vh; }
     @media (max-width: 760px) { .gunce-main { padding-top: 160px; } }
@@ -348,14 +389,25 @@ import { GAS_BASE } from "../config.js";
       }
     }
 
+    // İletişim bağlantıları — WhatsApp adresi admin panelinde hazır üretiliyor
+    function iletisimBaglantilari(a) {
+      const igUrl = a.instagram
+        ? (String(a.instagram).startsWith("http") ? a.instagram : "https://instagram.com/" + String(a.instagram).replace(/^@/, ""))
+        : "";
+      const wa = String(a.whatsapp || "").trim();
+      const waUrl = wa.startsWith("http") ? wa : "";
+      const mailUrl = a.email ? "mailto:" + String(a.email).trim() : "";
+      return { igUrl, waUrl, mailUrl };
+    }
+
     async function ayarlar(){
       try{
-        const a=await (await fetch(API_AYARLAR)).json();
-        const igUrl=a.instagram ? (a.instagram.startsWith("http")?a.instagram:"https://instagram.com/"+String(a.instagram).replace(/^@/,"")) : "";
-        const waUrl=a.whatsapp ? ("https://wa.me/"+String(a.whatsapp).replace(/[^\d]/g,"")) : "";
-        if(waUrl){ const w=document.getElementById("fab-wa"); w.href=waUrl; w.hidden=false; }
-        if(igUrl){ const g=document.getElementById("fab-ig"); g.href=igUrl; g.hidden=false; }
-      }catch(e){}
+        const a = await (await fetch(API_AYARLAR)).json();
+        const { igUrl, waUrl, mailUrl } = iletisimBaglantilari(a);
+        if (waUrl)   { const w = document.getElementById("fab-wa");   w.href = waUrl;   w.hidden = false; }
+        if (igUrl)   { const g = document.getElementById("fab-ig");   g.href = igUrl;   g.hidden = false; }
+        if (mailUrl) { const m = document.getElementById("fab-mail"); m.href = mailUrl; m.hidden = false; }
+      } catch(e) { console.error("Ayarlar yüklenemedi:", e); }
     }
 
     document.addEventListener("DOMContentLoaded", function(){
@@ -365,6 +417,31 @@ import { GAS_BASE } from "../config.js";
       window.addEventListener("scroll",onScroll,{passive:true}); onScroll();
       yukle(); ayarlar();
     });
+
+    // ===== MOBİL MENÜ =====
+    (function mobilMenu() {
+      const burger = document.getElementById("nav-burger");
+      const links = document.getElementById("nav-links");
+      const overlay = document.getElementById("nav-overlay");
+      if (!burger || !links || !overlay) return;
+
+      function ac() {
+        links.classList.add("acik"); overlay.classList.add("acik"); burger.classList.add("acik");
+        burger.setAttribute("aria-expanded", "true");
+        document.body.style.overflow = "hidden";
+      }
+      function kapat() {
+        links.classList.remove("acik"); overlay.classList.remove("acik"); burger.classList.remove("acik");
+        burger.setAttribute("aria-expanded", "false");
+        document.body.style.overflow = "";
+      }
+      burger.addEventListener("click", function () {
+        links.classList.contains("acik") ? kapat() : ac();
+      });
+      overlay.addEventListener("click", kapat);
+      links.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", kapat); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") kapat(); });
+    })();
   </script>
 </body>
 </html>

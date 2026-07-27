@@ -62,6 +62,9 @@ import { GAS_BASE } from "../config.js";
     <a href="#" id="fab-ig" class="fab" target="_blank" rel="noopener" title="Instagram" hidden>
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"/></svg>
     </a>
+    <a href="#" id="fab-mail" class="fab" title="E-posta" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="M3 6l9 6.5L21 6"/></svg>
+    </a>
   </div>
 
   <!-- NAVİGASYON -->
@@ -72,7 +75,7 @@ import { GAS_BASE } from "../config.js";
         <circle cx="15" cy="15" r="4.5" stroke="currentColor" stroke-width="1.2"/>
       </svg>
     </a>
-    <div class="nav-links">
+    <div class="nav-links" id="nav-links">
       <a href="/calismalar">Çalışmalar</a>
       <a href="#hakkimda">Hakkımda</a>
       <a href="#gunce">Günce</a>
@@ -84,8 +87,12 @@ import { GAS_BASE } from "../config.js";
         <svg class="ic-moon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a.6.6 0 0 0-.8-.77A9.5 9.5 0 1 0 21.3 15.3a.6.6 0 0 0-.8-.8z"/></svg>
       </button>
       <a href="/iletisim" class="nav-cta">Rezervasyon</a>
+      <button class="nav-burger" id="nav-burger" aria-label="Menü" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
+  <div class="nav-overlay" id="nav-overlay"></div>
 
   <!-- HERO -->
   <header class="hero" id="top">
@@ -275,10 +282,7 @@ import { GAS_BASE } from "../config.js";
     .floating {
       position: fixed; right: clamp(16px, 3vw, 30px); bottom: clamp(16px, 3vw, 30px);
       z-index: 120; display: flex; flex-direction: column; gap: 12px;
-      opacity: 0; transform: translateY(12px); pointer-events: none;
-      transition: opacity .4s ease, transform .4s var(--ease);
     }
-    .floating.show { opacity: 1; transform: none; pointer-events: auto; }
     .fab {
       width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
       background: var(--card); color: var(--fg); border: 1px solid var(--line-strong);
@@ -379,7 +383,10 @@ import { GAS_BASE } from "../config.js";
     .portfolio { padding: 100px clamp(24px, 5vw, 64px) 110px; }
     /* KARUSEL */
     .carousel { position: relative; }
-    .car-viewport { overflow: hidden; max-width: 100%; }
+    .car-viewport { overflow: hidden; max-width: 100%; touch-action: pan-y; cursor: grab; }
+    .car-viewport.suruklu { cursor: grabbing; }
+    .car-track.suruklu { transition: none; }
+    .car-track img { -webkit-user-drag: none; user-select: none; }
     .car-track {
       display: flex; gap: 24px;
       transition: transform .7s var(--ease);
@@ -389,7 +396,8 @@ import { GAS_BASE } from "../config.js";
     .car-track > * { flex: 0 0 calc((100% - 72px) / 4); }
     @media (max-width: 1200px) { .car-track > * { flex: 0 0 calc((100% - 48px) / 3); } }
     @media (max-width: 900px)  { .car-track > * { flex: 0 0 calc((100% - 24px) / 2); } }
-    @media (max-width: 640px)  { .car-track > * { flex: 0 0 100%; } }
+    @media (max-width: 640px)  { .car-track > * { flex: 0 0 calc((100% - 14px) / 2); } }
+    @media (max-width: 640px)  { .car-track { gap: 14px; } }
 
     .head-right { display: flex; align-items: center; gap: 18px; }
     .head-all { font-family: var(--font-mono); font-size: 12px; color: var(--accent); white-space: nowrap; }
@@ -480,8 +488,22 @@ import { GAS_BASE } from "../config.js";
     .journal-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 34px 20px; }
     @media (max-width: 1280px) { .journal-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
     @media (max-width: 1024px) { .journal-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    @media (max-width: 760px)  { .journal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 480px)  { .journal-grid { grid-template-columns: 1fr; } }
+
+    /* Mobil: yatay kaydırmalı şerit — aynı anda 2 kart, parmakla kayar */
+    @media (max-width: 760px) {
+      .journal-grid {
+        display: flex; gap: 14px;
+        overflow-x: auto; scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        margin: 0 calc(clamp(24px, 5vw, 64px) * -1);
+        padding: 0 clamp(24px, 5vw, 64px) 6px;
+      }
+      .journal-grid::-webkit-scrollbar { display: none; }
+      .journal-grid > * { flex: 0 0 calc((100% - 14px) / 2); scroll-snap-align: start; }
+      .jcard h3 { font-size: 0.98rem; }
+      .jcard p { font-size: 0.8rem; }
+    }
     .jcard { cursor: pointer; display: flex; flex-direction: column; }
     .jcard-cover {
       aspect-ratio: 16/10; overflow: hidden; background: var(--bg-elev); border: 1px solid var(--line);
@@ -801,6 +823,17 @@ import { GAS_BASE } from "../config.js";
       }
     }
 
+    // İletişim bağlantıları — WhatsApp adresi admin panelinde hazır üretiliyor
+    function iletisimBaglantilari(a) {
+      const igUrl = a.instagram
+        ? (String(a.instagram).startsWith("http") ? a.instagram : "https://instagram.com/" + String(a.instagram).replace(/^@/, ""))
+        : "";
+      const wa = String(a.whatsapp || "").trim();
+      const waUrl = wa.startsWith("http") ? wa : "";
+      const mailUrl = a.email ? "mailto:" + String(a.email).trim() : "";
+      return { igUrl, waUrl, mailUrl };
+    }
+
     // ===================== AYARLAR (profil / iletişim) =====================
     async function loadAyarlar() {
       try {
@@ -837,15 +870,15 @@ import { GAS_BASE } from "../config.js";
         // Metin sosyal linkleri
         const social = document.getElementById("social-links");
         const ekle = (ad, url) => { if (url) { const el = document.createElement("a"); el.href = url; el.target = "_blank"; el.rel = "noopener"; el.innerText = ad; social.appendChild(el); } };
-        const igUrl = a.instagram ? (a.instagram.startsWith("http") ? a.instagram : "https://instagram.com/" + String(a.instagram).replace(/^@/, "")) : "";
-        const waUrl = a.whatsapp ? ("https://wa.me/" + String(a.whatsapp).replace(/[^\d]/g, "")) : "";
+        const { igUrl, waUrl, mailUrl } = iletisimBaglantilari(a);
         ekle("Instagram", igUrl);
         ekle("Behance", a.behance || "");
         ekle("WhatsApp", waUrl);
 
         // Yüzen butonlar
-        if (waUrl) { const w = document.getElementById("fab-wa"); w.href = waUrl; w.hidden = false; }
-        if (igUrl) { const g = document.getElementById("fab-ig"); g.href = igUrl; g.hidden = false; }
+        if (waUrl)   { const w = document.getElementById("fab-wa");   w.href = waUrl;   w.hidden = false; }
+        if (igUrl)   { const g = document.getElementById("fab-ig");   g.href = igUrl;   g.hidden = false; }
+        if (mailUrl) { const m = document.getElementById("fab-mail"); m.href = mailUrl; m.hidden = false; }
       } catch (err) {
         console.error("Ayarlar yüklenemedi:", err);
       }
@@ -858,7 +891,7 @@ import { GAS_BASE } from "../config.js";
 
     function carGorunen() {
       const w = window.innerWidth;
-      if (w <= 640) return 1;
+      if (w <= 640) return 2;
       if (w <= 900) return 2;
       if (w <= 1200) return 3;
       return 4;
@@ -904,9 +937,96 @@ import { GAS_BASE } from "../config.js";
       car.addEventListener("mouseleave", carSayaciSifirla);
 
       window.addEventListener("resize", () => { carIdx = 0; carUygula(); });
+      carDokunmaBagla(track, car);
 
       carUygula();
       carSayaciSifirla();
+    }
+
+    // Parmakla / fareyle sürükleyerek kaydırma
+    function carDokunmaBagla(track, car) {
+      const viewport = car.querySelector(".car-viewport");
+      let baslangicX = 0, baslangicY = 0, suruklendi = 0;
+      let aktif = false, yonBelli = false, yatay = false, baslangicIdx = 0;
+
+      function kartGenislik() {
+        const ilk = track.children[0];
+        if (!ilk) return 1;
+        const gap = parseFloat(getComputedStyle(track).columnGap) || 24;
+        return ilk.getBoundingClientRect().width + gap;
+      }
+
+      function basla(x, y) {
+        aktif = true; yonBelli = false; yatay = false;
+        baslangicX = x; baslangicY = y; suruklendi = 0;
+        baslangicIdx = carIdx;
+        clearInterval(carTimer);
+        track.classList.add("suruklu");
+        viewport.classList.add("suruklu");
+      }
+
+      function hareket(x, y, ev) {
+        if (!aktif) return;
+        const dx = x - baslangicX;
+        const dy = y - baslangicY;
+
+        // İlk 8px'te yönü belirle: dikeyse karuseli bırak, sayfa kaysın
+        if (!yonBelli && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+          yonBelli = true;
+          yatay = Math.abs(dx) > Math.abs(dy);
+          if (!yatay) { bitir(); return; }
+        }
+        if (!yatay) return;
+        if (ev && ev.cancelable) ev.preventDefault();
+
+        suruklendi = dx;
+        const adim = kartGenislik();
+        track.style.transform = "translateX(" + (-(baslangicIdx * adim) + dx) + "px)";
+      }
+
+      function bitir() {
+        if (!aktif) return;
+        aktif = false;
+        track.classList.remove("suruklu");
+        viewport.classList.remove("suruklu");
+
+        const adim = kartGenislik();
+        const enFazla = Math.max(0, track.children.length - carGorunen());
+
+        // Kart genişliğinin %20'sini geçtiyse kaydır
+        if (Math.abs(suruklendi) > adim * 0.2) {
+          const kayan = Math.round(Math.abs(suruklendi) / adim) || 1;
+          carIdx = baslangicIdx + (suruklendi < 0 ? kayan : -kayan);
+          if (carIdx > enFazla) carIdx = enFazla;
+          if (carIdx < 0) carIdx = 0;
+        } else {
+          carIdx = baslangicIdx;
+        }
+        carUygula();
+        carSayaciSifirla();
+      }
+
+      // Dokunma
+      viewport.addEventListener("touchstart", function (e) {
+        basla(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: true });
+      viewport.addEventListener("touchmove", function (e) {
+        hareket(e.touches[0].clientX, e.touches[0].clientY, e);
+      }, { passive: false });
+      viewport.addEventListener("touchend", bitir);
+      viewport.addEventListener("touchcancel", bitir);
+
+      // Fare (masaüstünde de sürüklenebilsin)
+      viewport.addEventListener("mousedown", function (e) {
+        e.preventDefault(); basla(e.clientX, e.clientY);
+      });
+      window.addEventListener("mousemove", function (e) { hareket(e.clientX, e.clientY, null); });
+      window.addEventListener("mouseup", bitir);
+
+      // Sürükledikten sonra kartın tıklanmasını engelle
+      track.addEventListener("click", function (e) {
+        if (Math.abs(suruklendi) > 6) { e.preventDefault(); e.stopPropagation(); }
+      }, true);
     }
 
     // ===================== ANİMASYON =====================
@@ -936,15 +1056,42 @@ import { GAS_BASE } from "../config.js";
 
       // Nav arka planı + yüzen butonlar scroll'a göre
       const nav = document.getElementById("nav");
-      const floating = document.getElementById("floating");
+      
       const onScroll = () => {
         const y = window.scrollY;
         nav.style.background = y > 40 ? "color-mix(in srgb, var(--bg) 82%, transparent)" : "transparent";
-        floating.classList.toggle("show", y > window.innerHeight * 0.7);
+        
       };
       window.addEventListener("scroll", onScroll, { passive: true });
       onScroll();
     });
+
+    // ===== MOBİL MENÜ =====
+    (function mobilMenu() {
+      const burger = document.getElementById("nav-burger");
+      const links = document.getElementById("nav-links");
+      const overlay = document.getElementById("nav-overlay");
+      if (!burger || !links || !overlay) return;
+
+      function ac() {
+        links.classList.add("acik"); overlay.classList.add("acik"); burger.classList.add("acik");
+        burger.setAttribute("aria-expanded", "true");
+        document.body.style.overflow = "hidden";
+      }
+      function kapat() {
+        links.classList.remove("acik"); overlay.classList.remove("acik"); burger.classList.remove("acik");
+        burger.setAttribute("aria-expanded", "false");
+        document.body.style.overflow = "";
+      }
+      burger.addEventListener("click", function () {
+        links.classList.contains("acik") ? kapat() : ac();
+      });
+      overlay.addEventListener("click", kapat);
+      links.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", kapat); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") kapat(); });
+    })();
+
+
   </script>
 </body>
 </html>
