@@ -77,8 +77,8 @@ import { GAS_BASE } from "../config.js";
     </a>
     <div class="nav-links" id="nav-links">
       <a href="/calismalar">Çalışmalar</a>
-      <a href="#hakkimda">Hakkımda</a>
-      <a href="#gunce">Günce</a>
+      <a href="/hakkimda">Hakkımda</a>
+      <a href="/gunce">Günce</a>
       <a href="/iletisim">İletişim</a>
     </div>
     <div class="nav-right">
@@ -128,6 +128,7 @@ import { GAS_BASE } from "../config.js";
         <li><strong id="stat-albom">—</strong><span>albüm</span></li>
         <li><strong id="stat-yazi">—</strong><span>günce yazısı</span></li>
       </ul>
+      <a href="/hakkimda" class="about-more">Hakkımda daha fazlası →</a>
     </div>
   </section>
 
@@ -163,6 +164,23 @@ import { GAS_BASE } from "../config.js";
       Henüz yayınlanmış çalışma yok. Yönetim panelinden ilk kareyi ekleyin.
     </p>
   </main>
+
+  <!-- YETKİNLİK & SERTİFİKA ŞERİDİ -->
+  <section class="uzmanlik" id="uzmanlik" hidden>
+    <div class="uz-ic">
+      <div class="uz-sol" id="uz-yetkinlik" hidden>
+        <p class="section-label">UZMANLIK</p>
+        <div class="uz-etiketler" id="uz-etiketler"></div>
+      </div>
+      <div class="uz-sag" id="uz-belge" hidden>
+        <p class="section-label">SERTİFİKALAR</p>
+        <div class="uz-sertifikalar" id="uz-sertifikalar"></div>
+      </div>
+    </div>
+    <div class="uz-alt">
+      <a href="/hakkimda" class="btn-outline">Hakkımda &amp; belgeler →</a>
+    </div>
+  </section>
 
   <!-- GÜNCE / BLOG — 6 rastgele önizleme -->
   <section class="journal" id="gunce">
@@ -325,13 +343,40 @@ import { GAS_BASE } from "../config.js";
       transition: border-color 0.25s, background 0.25s, color .25s;
     }
     .nav-cta:hover { border-color: var(--accent); color: var(--accent); }
+    /* Mobil menü */
+    .nav-burger { display:none; background:none; border:1px solid var(--line); width:36px; height:36px; border-radius:50%; cursor:pointer; padding:0; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+    .nav-burger span { display:block; width:16px; height:1.5px; background:var(--fg-muted); transition:transform .25s var(--ease), opacity .25s; }
+    .nav-burger.acik span:nth-child(1) { transform:translateY(5.5px) rotate(45deg); }
+    .nav-burger.acik span:nth-child(2) { opacity:0; }
+    .nav-burger.acik span:nth-child(3) { transform:translateY(-5.5px) rotate(-45deg); }
+    .nav-overlay { display:none; }
+
     @media (max-width: 760px) {
-      .nav { flex-wrap: wrap; gap: 10px 14px; padding: 14px 16px; }
-      .nav-links { order: 3; width: 100%; gap: 16px; justify-content: space-between; overflow-x: auto; scrollbar-width: none; }
-      .nav-links::-webkit-scrollbar { display: none; }
-      .nav-links a { font-size: 10.5px; white-space: nowrap; }
-      .nav-cta { padding: 7px 12px; font-size: 10px; }
-      .nav-right { gap: 10px; }
+      .nav { padding:14px 16px; z-index:140; backdrop-filter:none; }
+      .nav-burger { display:flex; }
+      .nav-cta { display:none; }
+
+      .nav-links {
+        position:fixed; top:0; right:0; bottom:0; width:270px; max-width:80vw;
+        flex-direction:column; align-items:stretch; gap:0;
+        background:var(--bg-elev); border-left:1px solid var(--line);
+        padding:88px 0 28px; z-index:140;
+        transform:translateX(100%); transition:transform .32s var(--ease);
+        box-shadow:var(--shadow); overflow-y:auto;
+      }
+      .nav-links.acik { transform:translateX(0); }
+      .nav-links a {
+        padding:18px 26px; font-size:12px;
+        border-bottom:1px solid var(--line); border-left:2px solid transparent;
+      }
+      .nav-links a.active { color:var(--fg); border-left-color:var(--accent); background:color-mix(in srgb, var(--accent) 8%, transparent); }
+      .nav-links a.active::after { display:none; }
+
+      .nav-overlay {
+        display:block; position:fixed; inset:0; background:rgba(0,0,0,0.55);
+        opacity:0; pointer-events:none; transition:opacity .3s; z-index:125;
+      }
+      .nav-overlay.acik { opacity:1; pointer-events:auto; }
     }
 
     /* HERO */
@@ -380,7 +425,7 @@ import { GAS_BASE } from "../config.js";
     .count { font-family: var(--font-mono); font-size: 13px; color: var(--fg-muted); }
 
     /* ÇALIŞMALAR */
-    .portfolio { padding: 100px clamp(24px, 5vw, 64px) 110px; }
+    .portfolio { padding: 100px clamp(24px, 5vw, 64px) 70px; }
     /* KARUSEL */
     .carousel { position: relative; }
     .car-viewport { overflow: hidden; max-width: 100%; touch-action: pan-y; cursor: grab; }
@@ -396,13 +441,12 @@ import { GAS_BASE } from "../config.js";
     .car-track > * { flex: 0 0 calc((100% - 72px) / 4); }
     @media (max-width: 1200px) { .car-track > * { flex: 0 0 calc((100% - 48px) / 3); } }
     @media (max-width: 900px)  { .car-track > * { flex: 0 0 calc((100% - 24px) / 2); } }
-    @media (max-width: 640px)  { .car-track > * { flex: 0 0 calc((100% - 14px) / 2); } }
-    @media (max-width: 640px)  { .car-track { gap: 14px; } }
+    @media (max-width: 640px)  { .car-track > * { flex: 0 0 100%; } }
 
     .head-right { display: flex; align-items: center; gap: 18px; }
     .head-all { font-family: var(--font-mono); font-size: 12px; color: var(--accent); white-space: nowrap; }
     .head-all:hover { text-decoration: underline; }
-    .portfolio-cta { display: flex; justify-content: center; margin-top: 44px; }
+    .portfolio-cta { display: flex; justify-content: center; margin-top: 32px; }
     .btn-outline {
       font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em;
       text-transform: uppercase; color: var(--fg); border: 1px solid var(--line-strong);
@@ -462,8 +506,10 @@ import { GAS_BASE } from "../config.js";
       padding: 100px clamp(24px, 5vw, 64px); align-items: center;
     }
     @media (max-width: 860px) {
-      .about { grid-template-columns: 1fr; gap: 36px; }
-      .about-media { max-width: 320px; }
+      .about { grid-template-columns: 1fr; gap: 36px; text-align: center; }
+      .about-media { max-width: 320px; margin-left: auto; margin-right: auto; }
+      .about-metin p { margin-left: auto; margin-right: auto; }
+      .stats { justify-content: center; }
     }
     .about-frame {
       aspect-ratio: 4/5; max-height: 580px; background: var(--bg); position: relative;
@@ -482,6 +528,14 @@ import { GAS_BASE } from "../config.js";
     .stats strong { font-family: var(--font-display); font-size: 1.6rem; color: var(--accent); }
     .stats span { font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); }
 
+    .about-more {
+      display: inline-block; margin-top: 34px;
+      font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em;
+      color: var(--accent); border-bottom: 1px solid transparent;
+      transition: border-color .25s;
+    }
+    .about-more:hover { border-bottom-color: var(--accent); }
+
     /* GÜNCE */
     .journal { padding: 100px clamp(24px, 5vw, 64px); }
     .journal-all { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
@@ -495,9 +549,8 @@ import { GAS_BASE } from "../config.js";
         display: flex; gap: 14px;
         overflow-x: auto; scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        margin: 0 calc(clamp(24px, 5vw, 64px) * -1);
-        padding: 0 clamp(24px, 5vw, 64px) 6px;
+        scrollbar-width: none; -ms-overflow-style: none;
+        padding-bottom: 6px;
       }
       .journal-grid::-webkit-scrollbar { display: none; }
       .journal-grid > * { flex: 0 0 calc((100% - 14px) / 2); scroll-snap-align: start; }
@@ -586,12 +639,29 @@ import { GAS_BASE } from "../config.js";
     @media (prefers-reduced-motion: reduce) {
       * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
     }
+
+    /* UZMANLIK ŞERİDİ */
+    .uzmanlik { background: var(--bg-elev); padding: 80px clamp(24px, 5vw, 64px); border-top: 1px solid var(--line); }
+    .uz-ic { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.1fr); gap: 56px; max-width: 1160px; margin: 0 auto; }
+    @media (max-width: 900px) { .uz-ic { grid-template-columns: 1fr; gap: 44px; } }
+    .uz-etiketler { display: flex; flex-wrap: wrap; gap: 9px; }
+    .uz-etiket { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.05em; color: var(--fg-muted); border: 1px solid var(--line); border-radius: 999px; padding: 9px 17px; }
+    .uz-sertifikalar { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+    .uz-sertifikalar::-webkit-scrollbar { display: none; }
+    .uz-sert { flex: 0 0 190px; cursor: zoom-in; }
+    .uz-sert-gorsel { aspect-ratio: 4/3; background: var(--bg); border: 1px solid var(--line); overflow: hidden; display: grid; place-items: center; }
+    .uz-sert-gorsel img { width: 100%; height: 100%; object-fit: contain; }
+    .uz-sert-ad { font-size: 0.85rem; margin-top: 10px; line-height: 1.35; }
+    .uz-sert-kurum { font-family: var(--font-mono); font-size: 10px; color: var(--fg-faint); margin-top: 4px; }
+    .uz-alt { display: flex; justify-content: center; margin-top: 48px; }
   </style>
 
   <script is:inline>
     const GAS_BASE = document.body.dataset.api;
     const API_FOTO    = GAS_BASE + "?api=true";
     const API_ALBUM   = GAS_BASE + "?albumler=true";
+    const API_YETKINLIK = GAS_BASE + "?yetkinlikler=true";
+    const API_BELGE   = GAS_BASE + "?belgeler=true";
     const API_BLOG    = GAS_BASE + "?blog=true";
     const API_AYARLAR = GAS_BASE + "?ayarlar=true";
 
@@ -816,6 +886,7 @@ import { GAS_BASE } from "../config.js";
           grid.appendChild(card);
         });
         animateCards();
+        jInit();
       } catch (err) {
         console.error("Günce yüklenemedi:", err);
         loader.style.display = "none";
@@ -884,14 +955,53 @@ import { GAS_BASE } from "../config.js";
       }
     }
 
+    // ===================== UZMANLIK ŞERİDİ =====================
+    async function loadUzmanlik() {
+      try {
+        const [ytk, blg] = await Promise.all([
+          fetch(API_YETKINLIK).then((r) => r.json()).catch(() => []),
+          fetch(API_BELGE).then((r) => r.json()).catch(() => [])
+        ]);
+
+        let gorunur = false;
+
+        // Yetkinlikler — en fazla 12 etiket
+        if (ytk && ytk.length) {
+          document.getElementById("uz-etiketler").innerHTML = ytk.slice(0, 12).map(function (y) {
+            return '<span class="uz-etiket">' + esc(y.ad) + '</span>';
+          }).join("");
+          document.getElementById("uz-yetkinlik").hidden = false;
+          gorunur = true;
+        }
+
+        // Sadece sertifikalar (CV ana sayfada gösterilmez)
+        const sertifikalar = (blg || []).filter(function (b) {
+          return (b.tip || "").toUpperCase() !== "CV";
+        });
+        if (sertifikalar.length) {
+          document.getElementById("uz-sertifikalar").innerHTML = sertifikalar.slice(0, 8).map(function (b) {
+            return '<a class="uz-sert" href="/hakkimda">' +
+              '<div class="uz-sert-gorsel"><img src="' + resolveImg(b.link) + '" alt="' + esc(b.ad) + '" loading="lazy" onerror="this.style.opacity=0.2"></div>' +
+              '<div class="uz-sert-ad">' + esc(b.ad) + '</div>' +
+              (b.kurum ? '<div class="uz-sert-kurum">' + esc(b.kurum) + (b.yil ? " · " + esc(b.yil) : "") + '</div>' : '') +
+            '</a>';
+          }).join("");
+          document.getElementById("uz-belge").hidden = false;
+          gorunur = true;
+        }
+
+        if (gorunur) document.getElementById("uzmanlik").hidden = false;
+      } catch (e) { console.error("Uzmanlık yüklenemedi:", e); }
+    }
+
     // ===================== KARUSEL =====================
     let carIdx = 0, carTimer = null;
-    const CAR_ADIM = 2;        // her tıklamada 2 içerik ilerle
-    const CAR_SURE = 5000;     // otomatik kayma aralığı (ms)
+    const CAR_ADIM = 1;        // her tıklamada 2 içerik ilerle
+    const CAR_SURE = 8000;     // otomatik kayma aralığı (ms)
 
     function carGorunen() {
       const w = window.innerWidth;
-      if (w <= 640) return 2;
+      if (w <= 640) return 1;
       if (w <= 900) return 2;
       if (w <= 1200) return 3;
       return 4;
@@ -1029,6 +1139,48 @@ import { GAS_BASE } from "../config.js";
       }, true);
     }
 
+    // ===================== GÜNCE ŞERİDİ (mobil otomatik kayma) =====================
+    let jTimer = null;
+
+    function jSayaciSifirla(grid) {
+      clearInterval(jTimer);
+      jTimer = setInterval(function () {
+        // Şerit modunda değilse (masaüstü ızgara) bir şey yapma
+        if (grid.scrollWidth <= grid.clientWidth + 4) return;
+
+        const ilk = grid.children[0];
+        if (!ilk) return;
+        const gap = parseFloat(getComputedStyle(grid).columnGap) || 14;
+        const adim = (ilk.getBoundingClientRect().width + gap) * 2;   // 2 kart ilerle
+
+        // Sona geldiyse başa dön
+        if (grid.scrollLeft + grid.clientWidth >= grid.scrollWidth - 4) {
+          grid.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+          grid.scrollBy({ left: adim, behavior: "smooth" });
+        }
+      }, CAR_SURE);
+    }
+
+    function jInit() {
+      const grid = document.getElementById("journal-grid");
+      if (!grid || !grid.children.length) return;
+
+      // Kullanıcı elle kaydırınca sayaç sıfırlansın
+      let bekle;
+      grid.addEventListener("scroll", function () {
+        clearInterval(jTimer);
+        clearTimeout(bekle);
+        bekle = setTimeout(function () { jSayaciSifirla(grid); }, 2500);
+      }, { passive: true });
+
+      grid.addEventListener("touchstart", function () { clearInterval(jTimer); }, { passive: true });
+      grid.addEventListener("mouseenter", function () { clearInterval(jTimer); });
+      grid.addEventListener("mouseleave", function () { jSayaciSifirla(grid); });
+
+      jSayaciSifirla(grid);
+    }
+
     // ===================== ANİMASYON =====================
     function animateCards() {
       if (!window.gsap) return;
@@ -1053,6 +1205,7 @@ import { GAS_BASE } from "../config.js";
       loadPortfolio();
       loadJournal();
       loadAyarlar();
+      loadUzmanlik();
 
       // Nav arka planı + yüzen butonlar scroll'a göre
       const nav = document.getElementById("nav");

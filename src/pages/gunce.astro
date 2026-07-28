@@ -61,7 +61,7 @@ import { GAS_BASE } from "../config.js";
     </a>
     <div class="nav-links" id="nav-links">
       <a href="/calismalar">Çalışmalar</a>
-      <a href="/#hakkimda">Hakkımda</a>
+      <a href="/hakkimda">Hakkımda</a>
       <a href="/gunce" class="active">Günce</a>
       <a href="/iletisim">İletişim</a>
     </div>
@@ -180,7 +180,7 @@ import { GAS_BASE } from "../config.js";
     .nav-overlay { display:none; }
 
     @media (max-width:760px) {
-      .nav { padding:14px 16px; }
+      .nav { padding:14px 16px; z-index:140; backdrop-filter:none; }
       .nav-burger { display:flex; }
       .nav-cta { display:none; }
 
@@ -188,7 +188,7 @@ import { GAS_BASE } from "../config.js";
         position:fixed; top:0; right:0; bottom:0; width:270px; max-width:80vw;
         flex-direction:column; align-items:stretch; gap:0;
         background:var(--bg-elev); border-left:1px solid var(--line);
-        padding:88px 0 28px; z-index:130;
+        padding:88px 0 28px; z-index:140;
         transform:translateX(100%); transition:transform .32s var(--ease);
         box-shadow:var(--shadow); overflow-y:auto;
       }
